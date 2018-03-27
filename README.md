@@ -7,16 +7,19 @@ encrypted drives using
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/), though with
 limitations described below.
 
-First, the script sets `/mnt/usb` as its mount point. If you prefer a
-different mount point, simply edit lines 4 and 5.
+First, the script sets `/mnt/usb` as the mount point. If you prefer a
+different one, simply edit line 4 (`MAP=...`) and line 5 (`MT1=...`).
+Keep in mind that the script expects to find all encrypted drives at
+`/dev/mapper/$MAP`, so changing line 4 has implications for how it
+uses [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
 
 Next, starting on line 8, edit the array to include the UUIDs of
-encrypted drives. The script will open and close them with
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/). For this to
-work, however, the entire drive must be encrypted. If it has several
-partitions, some or all of which are encrypted, don't include its UUID
-in the list. In that case, the script should work with the partitions
-that aren't encrypted but not the encrypted ones.
+encrypted drives. The script will attempt to open and close them with
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/), assuming that
+the entire drive is encrypted. If the drive has several partitions,
+some or all of which are encrypted, don't include its UUID in the
+list. The script should work with the partitions that aren't encrypted
+but not the encrypted ones.
 
 If more than one device is connected to your computer, the script will
 list them – that is, up to ten devices each on `/dev/sdb` through
