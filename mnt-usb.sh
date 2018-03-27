@@ -11,7 +11,7 @@ ED[3]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
 
 umnt-dev () {
 
-# If no device is mounted at $MT1, $MD is empty. If one of my
+# If no device is mounted at $MT1, $MD is empty. If one of your
 # encrypted drives is mounted at $MT1, $MD is /dev/mapper/$MAP.
 # Otherwise, $MD is a device such as /dev/sdb1.
 
