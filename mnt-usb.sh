@@ -20,13 +20,9 @@ umnt-dev () {
     echo "Unmount $MT1? [y/n]"
     read UQ
     if [ "$UQ" = "y" ]; then
+      sudo umount $MT1
       if [ "$MD" = "/dev/mapper/$MAP" ]; then
-        sudo umount $MT1
         sudo cryptsetup close $MAP
-      elif [ "$MD" != "/dev/sdb1" ]; then
-        sudo umount $MT1
-      else
-        umount $MT1
       fi
     fi
     exit
@@ -95,11 +91,7 @@ mnt-dev () {
     read MQ2
     if [ "$MQ2" = "y" ]; then
       chk-map
-      if [ "$SD" = "/dev/sdb1" ]; then
-        mount $MT1 2>/dev/null
-      else
-        sudo mount $SD $MT1 2>/dev/null
-      fi
+      sudo mount $SD $MT1 2>/dev/null
       chk-mnt
     fi
   else
