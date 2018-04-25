@@ -41,7 +41,7 @@ Unlicense](https://choosealicense.com/licenses/unlicense/).
 ## REQUIREMENTS
 
 * [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) (for encrypted drives)
-* [sudo](https://www.sudo.ws/) (for encrypted drives)
+* [sudo](https://www.sudo.ws/)
 * [util-linux](https://github.com/karelzak/util-linux/)
 
 ## FEEDBACK
