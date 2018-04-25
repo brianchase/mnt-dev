@@ -2,32 +2,34 @@
 
 ## ABOUT
 
-This little bash script mounts and unmounts USB drives. It works with
-encrypted drives using
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/), though with
-limitations described below.
+This little bash script mounts and unmounts USB drives. It can open
+and close encrypted devices with
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
 
-First, the script sets `/mnt/usb` as the mount point. If you prefer a
-different one, simply edit line 4 (`MAP=...`) and line 5 (`MT1=...`).
-Keep in mind that the script expects to find all encrypted drives at
-`/dev/mapper/$MAP`, so changing line 4 has implications for how it
-uses [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
+The default mount point for all devices is `/mnt/usb`. If you prefer a
+different one, simply edit lines 4 and 5 of the script, as necessary:
 
-Next, starting on line 8, edit the array to include the UUIDs of
-encrypted drives. The script will attempt to open and close them with
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/), assuming that
-the entire drive is encrypted. If the drive has several partitions,
-some or all of which are encrypted, don't include its UUID in the
-list. The script should work with the partitions that aren't encrypted
-but not the encrypted ones.
+```
+MAP="usb"
+MT1="/mnt/$MAP"
+```
+
+To use [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) with
+encrypted devices, edit the array starting on line 8 to include their
+UUIDs:
+
+```
+ED[1]="abababab-abab-abab-abab-abababababab"
+ED[2]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
+ED[3]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
+```
 
 If more than one device is connected to your computer, the script will
-list them – that is, up to ten devices each on `/dev/sdb` through
-`/dev/sdz` – and ask you which one to mount. For example, if a drive
-at `/dev/sdb` has two partitions, `/dev/sdb1` and `/dev/sdb2`, the
-script will give you the option of mounting one or the other. If a
-device is already mounted at `/mnt/usb`, the script will offer to
-unmount it.
+list them – up to ten devices each on `/dev/sdb` through `/dev/sdz` –
+and ask you which one to mount. For example, if `/dev/sdb` has two
+partitions, `/dev/sdb1` and `/dev/sdb2`, it will give you the option
+of mounting one or the other. If a device is already mounted at
+`/mnt/usb`, the script will offer to unmount it.
 
 Please see the script for further comments.
 
