@@ -58,6 +58,9 @@ chk-dev () {
 }
 
 chk-map () {
+  if [ ! -d "$MT1" ] ; then
+    echo "Missing $MT1!"
+  fi
 
 # Before mounting a drive, close /dev/mapper/$MAP if it's already
 # open. This avoids accidents that can happen when $MAP is no longer
