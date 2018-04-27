@@ -60,6 +60,7 @@ chk-dev () {
 chk-map () {
   if [ ! -d "$MT1" ] ; then
     echo "Missing $MT1!"
+    exit
   fi
 
 # Before mounting a drive, close /dev/mapper/$MAP if it's already
