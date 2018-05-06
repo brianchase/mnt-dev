@@ -46,7 +46,7 @@ chk-dev () {
       done
       echo -e "\t$(expr $N + 1). Exit"
       read NB
-      if [ "$NB" -eq "$(expr $N + 1)" ]; then
+      if [ "$NB" = "$(expr $N + 1)" ]; then
         exit 1
       elif [[ "$NB" =~ ^[0-9]+$ ]] && [ "$NB" -ge 1 -a "$NB" -le "${#DV[*]}" ]; then
         SD="${DV[$(expr $NB - 1)]}"
