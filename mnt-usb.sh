@@ -82,7 +82,7 @@ chk-mnt () {
 }
 
 mnt-dev () {
-  ID="$(lsblk -o UUID $SD | tail -1)"
+  ID="$(lsblk -o UUID $SD)"
   if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
     echo "Decrypt and mount $SD at $MT1? [y/n]"
     read MQ1
