@@ -38,15 +38,17 @@ chk-dev () {
     SD="${DV[0]}"
   else
     until [ "$SD" ]; do
-      N="0"
       echo -e "Please choose:\n"
-      while [ "$N" -lt "${#DV[*]}" ]; do
-        echo -e "\t$(expr $N + 1). ${DV[$N]}"
-        let "N += 1"
+      for i in "${DV[@]}"; do
+        for j in "${!DV[@]}"; do
+          if [[ "${DV[$j]}" = "$i" ]]; then
+            echo -e "\t$(expr $j + 1). ${DV[$j]}"
+          fi
+        done
       done
-      echo -e "\t$(expr $N + 1). Exit"
+      echo -e "\t$(expr $j + 2). Exit"
       read NB
-      if [ "$NB" = "$(expr $N + 1)" ]; then
+      if [ "$NB" = "$(expr $j + 2)" ]; then
         exit 1
       elif [[ "$NB" =~ ^[0-9]+$ ]] && [ "$NB" -ge 1 -a "$NB" -le "${#DV[*]}" ]; then
         SD="${DV[$(expr $NB - 1)]}"
