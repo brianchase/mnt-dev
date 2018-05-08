@@ -5,9 +5,9 @@ MAP="usb"
 MT1="/mnt/$MAP"
 
 # UUIDs of encrypted drives:
-ED[1]="abababab-abab-abab-abab-abababababab"
-ED[2]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
-ED[3]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
+ED[0]="abababab-abab-abab-abab-abababababab"
+ED[1]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
+ED[2]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
 
 umnt-dev () {
 
