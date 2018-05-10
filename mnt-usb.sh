@@ -1,111 +1,206 @@
 #!/bin/bash
 
-# Mount point for drives is /mnt/usb:
-MAP="usb"
-MT1="/mnt/$MAP"
+# The script mount drives in /mnt:
+PNT="mnt"
 
 # UUIDs of encrypted drives:
 ED[0]="abababab-abab-abab-abab-abababababab"
 ED[1]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
 ED[2]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
 
-umnt-dev () {
-
-# If no device is mounted at $MT1, $MD is empty. If one of your
-# encrypted drives is mounted at $MT1, $MD is /dev/mapper/$MAP.
-# Otherwise, $MD is a device such as /dev/sdb1.
-
-  MD="$(grep $MT1 /proc/mounts | awk '{print $1}')"
-  if [ "$MD" ]; then
-    echo "Unmount $MT1? [y/n]"
-    read UQ
-    if [ "$UQ" = "y" ]; then
-      sudo umount $MT1
-      if [ "$MD" = "/dev/mapper/$MAP" ]; then
-        sudo cryptsetup close $MAP
-      fi
-    fi
-    exit
+rmdir-b2 () {
+  if [ -d "${B2[i]}" ]; then
+    sudo rmdir ${B2[i]}
   fi
 }
 
-chk-dev () {
-  readarray -t DV <<< "$(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]")"
-  if [ -z "${DV[0]}" ]; then
+chk-mount () {
+  if [ "$?" -ne "0" ]; then
+    echo "Failed to mount ${A1[i]}!"
+    rmdir-b2
+  fi
+}
+
+list-a1 () {
+  for i in "${!A1[@]}"; do
+    let "N += 1"
+    echo -e "\t$N. Mount ${A1[$i]} at ${B1[$i]}"
+  done
+}
+
+list-a2 () {
+  for i in "${!A2[@]}"; do
+    let "N += 1"
+    echo -e "\t$N. Unmount ${A2[$i]} at ${B2[$i]}"
+  done
+}
+
+prune-a1 () {
+  TempA="${A1[$(expr $OP - 1)]}"
+  TempB="${B1[$(expr $OP - 1)]}"
+  unset {A1,B1}
+  A1[0]="$TempA"
+  B1[0]="$TempB"
+}
+
+prune-a2 () {
+  TempA="${A2[$(expr $OP - "${#A1[*]}" - 1)]}"
+  TempB="${B2[$(expr $OP - "${#A1[*]}" - 1)]}"
+  unset {A2,B2}
+  A2[0]="$TempA"
+  B2[0]="$TempB"
+}
+
+mount-a1 () {
+  for i in "${!A1[@]}"; do
+    unset {MQ,ID}
+    echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
+    read MQ
+    if [ "$MQ" = "y" ]; then
+      if [ ! -d "${B1[i]}" ]; then
+        sudo mkdir -p ${B1[i]}
+      fi
+      ID="$(lsblk -dno UUID ${A1[i]})"
+      if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
+        if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
+          ! echo "Device ${A1[$i]:5} already exists!"
+          chk-mount
+        else
+          sudo cryptsetup open ${A1[i]} ${A1[$i]:5}
+          sudo mount /dev/mapper/${A1[$i]:5} ${B1[i]} 2>/dev/null
+          chk-mount
+        fi
+      else
+        sudo mount ${A1[i]} ${B1[i]} 2>/dev/null
+        chk-mount
+      fi
+    fi
+  done
+}
+
+unmount-a2 () {
+  for i in "${!A2[@]}"; do
+    unset {UQ,ID}
+    echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
+    read UQ
+    if [ "$UQ" = "y" ]; then
+      sudo umount ${B2[i]}
+      ID="$(lsblk -dno UUID ${A2[i]})"
+      if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
+        sudo cryptsetup close ${A1[$i]:5}
+      fi
+      rmdir-b2
+    fi
+  done
+}
+
+menu-count () {
+  MC="$(expr ${#A1[*]} + ${#A2[*]} + 1)"
+  if [ "${#A1[*]}" -gt "1" ]; then
+    let "MC += 1"
+  fi
+  if [ "${#A2[*]}" -gt "1" ]; then
+    let "MC += 1"
+  fi
+}
+
+menu () {
+  menu-count
+  until [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" -ge 1 -a "$OP" -le "$MC" ]; do
+    N="0"
+    echo -e "Please choose:\n"
+    if [ "${#A1[*]}" -ge "1" ]; then
+      list-a1
+    fi
+    if [ "${#A2[*]}" -ge "1" ]; then
+      list-a2
+    fi
+    if [ "${#A1[*]}" -gt "1" ]; then
+      let "N += 1"
+      X="$N"
+      echo -e "\t$N. Mount all listed devices"
+    fi
+    if [ "${#A2[*]}" -gt "1" ]; then
+      let "N += 1"
+      Y="$N"
+      echo -e "\t$N. Unmount all listed devices"
+    fi
+    echo -e "\t$MC. Exit"
+    read OP
+    if [ "$OP" = "$MC" ]; then
+      exit 1
+    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" -gt "0" -a "$OP" -le "${#A1[*]}" ]; then
+      prune-a1
+      mount-a1
+    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" -a "$OP" -le "$(expr ${#A1[*]} + ${#A2[*]})" ]; then
+      prune-a2
+      unmount-a2
+    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" = "$X" ]; then
+      mount-a1
+    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" = "$Y" ]; then
+      unmount-a2
+    fi
+  done
+}
+
+loop-menu () {
+  until [ "$LOOP" = "n" ]; do
+    echo -e "\nReturn to menu? [y/n]"
+    read LOOP
+    if [ "$LOOP" = "y" ]; then
+      unset {A1,A2,B1,B2}
+      unset {MC,OP,X,Y}
+      arrays-a
+      arrays-b
+      menu
+    fi
+  done
+}
+
+chk-menu () {
+  if [ "${#A1[*]}" -eq "1" ] && [ "${#A2[*]}" -eq "0" ]; then
+    mount-a1
+  elif [ "${#A1[*]}" -eq "0" ] && [ "${#A2[*]}" -eq "1" ]; then
+    unmount-a2
+  else
+    menu
+    loop-menu
+  fi
+}
+
+arrays-a () {
+  readarray -t A1 <<< "$(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]")"
+  if [ -z "${A1[0]}" ]; then
+
+# If no devices are connected, array "${A1[0]}" is null, though
+# "${#A1[*]}" is 1, not 0, as you might expect.
+
     echo "No connected devices!"
     exit 1
-  elif [ "${#DV[*]}" -eq "1" ]; then
-    SD="${DV[0]}"
   else
-    until [ "$SD" ]; do
-      echo -e "Please choose:\n"
-      for i in "${DV[@]}"; do
-        for j in "${!DV[@]}"; do
-          if [[ "${DV[$j]}" = "$i" ]]; then
-            echo -e "\t$(expr $j + 1). ${DV[$j]}"
+    for i in "${A1[@]}"; do
+      if [ "$(lsblk -no MOUNTPOINT $i)" ]; then
+        A2+=("$i")
+        for j in "${!A1[@]}"; do
+          if [ "${A1[$j]}" = "$i" ]; then
+            unset A1[$j]
+            A1=("${A1[@]}")
           fi
         done
-      done
-      echo -e "\t$(expr $j + 2). Exit"
-      read NB
-      if [ "$NB" = "$(expr $j + 2)" ]; then
-        exit 1
-      elif [[ "$NB" =~ ^[0-9]+$ ]] && [ "$NB" -ge 1 -a "$NB" -le "${#DV[*]}" ]; then
-        SD="${DV[$(expr $NB - 1)]}"
-      else
-        echo -e "\nIncorrect value!\n"
       fi
     done
   fi
 }
 
-chk-map () {
-  if [ ! -d "$MT1" ] ; then
-    echo "Missing $MT1!"
-    exit 1
-  fi
-
-# Before mounting a drive, close /dev/mapper/$MAP if it's already
-# open. This avoids accidents that can happen when $MAP is no longer
-# mounted at $MT1 but was never closed.
-
-  if [ -L "/dev/mapper/$MAP" ]; then
-    sudo cryptsetup close $MAP
-  fi
+arrays-b () {
+  for i in "${!A1[@]}"; do
+    B1+=("/$PNT/${A1[$i]:5}")
+  done
+  for i in "${!A2[@]}"; do
+    B2+=("$(lsblk -no MOUNTPOINT ${A2[$i]} | tail -1)")
+  done
 }
 
-chk-mnt () {
-  if [ "$?" -ne "0" ]; then
-    echo "Failed to mount device!"
-    exit 1
-  fi
-}
-
-mnt-dev () {
-  ID="$(lsblk -o UUID $SD)"
-  if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
-    echo "Decrypt and mount $SD at $MT1? [y/n]"
-    read MQ1
-    if [ "$MQ1" = "y" ]; then
-      chk-map
-      sudo cryptsetup open $SD $MAP
-      sudo mount /dev/mapper/$MAP $MT1 2>/dev/null
-      chk-mnt
-    fi
-  elif [ -b "$SD" ]; then
-    echo "Mount $SD at $MT1? [y/n]"
-    read MQ2
-    if [ "$MQ2" = "y" ]; then
-      chk-map
-      sudo mount $SD $MT1 2>/dev/null
-      chk-mnt
-    fi
-  else
-    echo "$SD is not a recognized device!"
-    exit 1
-  fi
-}
-
-umnt-dev
-chk-dev
-mnt-dev
+arrays-a
+arrays-b
+chk-menu

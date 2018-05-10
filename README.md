@@ -4,25 +4,15 @@
 
 This little bash script mounts and unmounts USB drives. It can open
 and close encrypted devices with
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
-
-The default mount point for all devices is `/mnt/usb`. If you prefer a
-different one, simply edit lines 4 and 5 of the script, as
-necessary:
-
-```
-MAP="usb"
-MT1="/mnt/$MAP"
-```
-
-To use [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) with
-encrypted devices, put their UUIDs in the array starting on line 8,
-replacing the dummy values there for illustration:
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/). To use
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) with encrypted
+devices, put their UUIDs in the array starting on line 7, replacing
+the dummy values there for illustration:
 
 ```
-ED[1]="abababab-abab-abab-abab-abababababab"
-ED[2]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
-ED[3]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
+ED[0]="abababab-abab-abab-abab-abababababab"
+ED[1]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
+ED[2]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
 ```
 
 If more than one device is connected to your computer, the script will
@@ -31,11 +21,6 @@ and ask you which one to mount. For example, if `/dev/sdb` has two
 partitions, `/dev/sdb1` and `/dev/sdb2`, it will give you the option
 of mounting one or the other. If a device is already mounted at
 `/mnt/usb`, the script will offer to unmount it.
-
-Since the script uses the same mount point for all devices
-(`/mnt/usb`), and expects all encrypted devices to have the same name
-(`usb`), it only mounts one device at a time. This is good enough for
-me but a serious limitation nonetheless. I may improve it someday.
 
 Please see the script for further comments.
 
