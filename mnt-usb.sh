@@ -87,7 +87,7 @@ unmount-a2 () {
       sudo umount ${B2[i]}
       ID="$(lsblk -dno UUID ${A2[i]})"
       if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
-        sudo cryptsetup close ${A1[$i]:5}
+        sudo cryptsetup close ${A2[$i]:5}
       fi
       rmdir-b2
     fi
