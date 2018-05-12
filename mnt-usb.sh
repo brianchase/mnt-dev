@@ -106,7 +106,7 @@ menu-count () {
 
 menu () {
   menu-count
-  until [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" -ge 1 -a "$OP" -le "$MC" ]; do
+  until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$MC" ]; do
     N="0"
     echo -e "Please choose:\n"
     if [ "${#A1[*]}" -ge "1" ]; then
@@ -117,27 +117,25 @@ menu () {
     fi
     if [ "${#A1[*]}" -gt "1" ]; then
       let "N += 1"
-      X="$N"
       echo -e "\t$N. Mount all listed devices"
     fi
     if [ "${#A2[*]}" -gt "1" ]; then
       let "N += 1"
-      Y="$N"
       echo -e "\t$N. Unmount all listed devices"
     fi
     echo -e "\t$MC. Exit"
     read OP
     if [ "$OP" = "$MC" ]; then
       exit 1
-    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" -gt "0" -a "$OP" -le "${#A1[*]}" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
       prune-a1
       mount-a1
-    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" -a "$OP" -le "$(expr ${#A1[*]} + ${#A2[*]})" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" -a "$OP" -le "$(expr ${#A1[*]} + ${#A2[*]})" ]; then
       prune-a2
       unmount-a2
-    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" = "$X" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" -a "$OP" -eq "$(expr ${#A1[*]} + ${#A2[*]} + 1)" ]; then
       mount-a1
-    elif [[ "$OP" =~ ^[0-9]+$ ]] && [ "$OP" = "$Y" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" -a "$OP" -lt "$MC" ]; then
       unmount-a2
     fi
   done
@@ -147,8 +145,7 @@ loop-menu () {
   echo -e "\nReturn to menu? [y/n]"
   read LOOP
   if [ "$LOOP" = "y" ]; then
-    unset {A1,A2,B1,B2}
-    unset {MC,OP,X,Y}
+    unset {A1,A2,B1,B2,OP}
     arrays-a
     arrays-b
 
