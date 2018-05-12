@@ -153,7 +153,7 @@ loop-menu () {
     arrays-b
 
 # Go to chk-menu here, not menu. Why? Because at this point, you might
-# have just unmounted and removed a device and plugged another in.
+# have unmounted and removed a device and plugged another in.
 
     chk-menu
   fi
