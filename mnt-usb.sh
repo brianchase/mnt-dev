@@ -34,16 +34,16 @@ list-a2 () {
 }
 
 prune-a1 () {
-  TempA="${A1[$(expr $OP - 1)]}"
-  TempB="${B1[$(expr $OP - 1)]}"
+  TempA="${A1[(($OP - 1))]}"
+  TempB="${B1[(($OP - 1))]}"
   unset {A1,B1}
   A1[0]="$TempA"
   B1[0]="$TempB"
 }
 
 prune-a2 () {
-  TempA="${A2[$(expr $OP - "${#A1[*]}" - 1)]}"
-  TempB="${B2[$(expr $OP - "${#A1[*]}" - 1)]}"
+  TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
+  TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
   unset {A2,B2}
   A2[0]="$TempA"
   B2[0]="$TempB"
@@ -93,7 +93,7 @@ unmount-a2 () {
 }
 
 menu-count () {
-  MC="$(expr ${#A1[*]} + ${#A2[*]} + 1)"
+  MC="$((${#A1[*]} + ${#A2[*]} + 1))"
   if [ "${#A1[*]}" -gt "1" ]; then
     ((MC += 1))
   fi
@@ -126,10 +126,10 @@ menu () {
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
       prune-a1
       mount-a1
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" -a "$OP" -le "$(expr ${#A1[*]} + ${#A2[*]})" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" -a "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
       prune-a2
       unmount-a2
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" -a "$OP" -eq "$(expr ${#A1[*]} + ${#A2[*]} + 1)" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" -a "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
       mount-a1
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" -a "$OP" -lt "$MC" ]; then
       unmount-a2
