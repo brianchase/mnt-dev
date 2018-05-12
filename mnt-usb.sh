@@ -23,15 +23,13 @@ chk-mount () {
 
 list-a1 () {
   for i in "${!A1[@]}"; do
-    let "N += 1"
-    echo -e "\t$N. Mount ${A1[$i]} at ${B1[$i]}"
+    echo -e "\t$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
   done
 }
 
 list-a2 () {
   for i in "${!A2[@]}"; do
-    let "N += 1"
-    echo -e "\t$N. Unmount ${A2[$i]} at ${B2[$i]}"
+    echo -e "\t$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
   done
 }
 
@@ -97,10 +95,10 @@ unmount-a2 () {
 menu-count () {
   MC="$(expr ${#A1[*]} + ${#A2[*]} + 1)"
   if [ "${#A1[*]}" -gt "1" ]; then
-    let "MC += 1"
+    ((MC += 1))
   fi
   if [ "${#A2[*]}" -gt "1" ]; then
-    let "MC += 1"
+    ((MC += 1))
   fi
 }
 
@@ -116,12 +114,10 @@ menu () {
       list-a2
     fi
     if [ "${#A1[*]}" -gt "1" ]; then
-      let "N += 1"
-      echo -e "\t$N. Mount all listed devices"
+      echo -e "\t$((N += 1)). Mount all listed devices"
     fi
     if [ "${#A2[*]}" -gt "1" ]; then
-      let "N += 1"
-      echo -e "\t$N. Unmount all listed devices"
+      echo -e "\t$((N += 1)). Unmount all listed devices"
     fi
     echo -e "\t$MC. Exit"
     read OP
