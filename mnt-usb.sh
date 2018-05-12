@@ -144,17 +144,19 @@ menu () {
 }
 
 loop-menu () {
-  until [ "$LOOP" = "n" ]; do
-    echo -e "\nReturn to menu? [y/n]"
-    read LOOP
-    if [ "$LOOP" = "y" ]; then
-      unset {A1,A2,B1,B2}
-      unset {MC,OP,X,Y}
-      arrays-a
-      arrays-b
-      chk-menu
-    fi
-  done
+  echo -e "\nReturn to menu? [y/n]"
+  read LOOP
+  if [ "$LOOP" = "y" ]; then
+    unset {A1,A2,B1,B2}
+    unset {MC,OP,X,Y}
+    arrays-a
+    arrays-b
+
+# Go to chk-menu here, not menu. Why? Because at this point, you might
+# have just unmounted and removed a device and plugged another in.
+
+    chk-menu
+  fi
 }
 
 chk-menu () {
