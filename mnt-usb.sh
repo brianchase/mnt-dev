@@ -152,7 +152,7 @@ loop-menu () {
       unset {MC,OP,X,Y}
       arrays-a
       arrays-b
-      menu
+      chk-menu
     fi
   done
 }
