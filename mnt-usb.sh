@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# The script mount drives in /mnt:
+# The script mount devices in /mnt:
 PNT="mnt"
 
 # UUIDs of encrypted drives:
