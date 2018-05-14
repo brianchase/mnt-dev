@@ -3,11 +3,6 @@
 # The script mount devices in /mnt:
 PNT="mnt"
 
-# UUIDs of encrypted drives:
-ED[0]="abababab-abab-abab-abab-abababababab"
-ED[1]="bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc"
-ED[2]="cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"
-
 rmdir-b2 () {
   if [ -d "${B2[i]}" ]; then
     sudo rmdir ${B2[i]}
@@ -51,15 +46,15 @@ prune-a2 () {
 
 mount-a1 () {
   for i in "${!A1[@]}"; do
-    unset {MQ,ID}
+    unset {MQ,CL}
     echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
     read MQ
     if [ "$MQ" = "y" ]; then
       if [ ! -d "${B1[i]}" ]; then
         sudo mkdir -p ${B1[i]}
       fi
-      ID="$(lsblk -dno UUID ${A1[i]})"
-      if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
+      CL="$(lsblk -npo FSTYPE ${A1[i]})"
+      if [ "$CL" = "crypto_LUKS" ]; then
         if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
           ! echo "Device ${A1[$i]:5} already exists!"
           chk-mount
@@ -78,13 +73,12 @@ mount-a1 () {
 
 unmount-a2 () {
   for i in "${!A2[@]}"; do
-    unset {UQ,ID}
+    unset UQ
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
     read UQ
     if [ "$UQ" = "y" ]; then
       sudo umount ${B2[i]}
-      ID="$(lsblk -dno UUID ${A2[i]})"
-      if [ "$ID" ] && [[ "${ED[@]}" =~ "$ID" ]]; then
+      if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
         sudo cryptsetup close ${A2[$i]:5}
       fi
       rmdir-b2
@@ -198,4 +192,4 @@ arrays-b () {
 
 arrays-a
 arrays-b
-chk-menu
+esac
