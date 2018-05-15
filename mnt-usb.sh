@@ -157,6 +157,28 @@ chk-menu () {
   fi
 }
 
+chk-a1-arg () {
+  if [[ "${A1[@]}" =~ "$1" ]]; then
+    unset {A1,B1}
+    A1[0]="$1"
+    B1[0]="/$PNT/${A1[0]:5}"
+    mount-a1
+  else
+    echo "$1 not found!"
+  fi
+}
+
+chk-a2-arg () {
+  if [[ "${A2[@]}" =~ "$1" ]]; then
+    unset {A2,B2}
+    A2[0]="$1"
+    B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
+    unmount-a2
+  else
+    echo "$1 not found!"
+  fi
+}
+
 arrays-a () {
   readarray -t A1 <<< "$(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]")"
   if [ -z "${A1[0]}" ]; then
@@ -192,4 +214,8 @@ arrays-b () {
 
 arrays-a
 arrays-b
+case $1 in
+  mount) chk-a1-arg $2 ;;
+  unmount | umount) chk-a2-arg $2 ;;
+  *) chk-menu ;;
 esac
