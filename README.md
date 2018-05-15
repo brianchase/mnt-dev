@@ -2,8 +2,8 @@
 
 ## ABOUT
 
-This little bash script mounts and unmounts devices in `/dev/`, such
-as USB drives. It can open and close encrypted devices with
+This little bash script mounts and unmounts removable devices, such as
+USB thumb drives. It can open and close encrypted devices with
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
 
 If the script detects just one connected device, it will check whether
@@ -15,8 +15,7 @@ devices each in `/dev/sdb` through `/dev/sdz` – and ask which ones to
 mount or unmount. You can select individual devices or chose to mount
 all the ones that aren't mounted or to unmount all the ones that are.
 It then gives you the option of returning to the menu, which it
-updates to reflect the current status of each device. You can then
-make more selections, and so on.
+updates to reflect the current status of each device.
 
 By default, the script mounts all devices in `/mnt` according to its
 name in `/dev`. For example, it will mount `/dev/sdb1` in `/mnt/sdb1`,
@@ -26,8 +25,8 @@ device's file system is crypto-LUKS, it will use
 device in `/dev/mapper` under the device's name. For example, it will
 open `/dev/sdb1` at `/dev/mapper/sdb1`, then mount it at `/mnt/sdb1`.
 
-After unmounting a device, the script removes the corresponding
-directory in `/mnt` and, if the device is encrypted, uses
+After unmounting a device, the script will remove the corresponding
+directory in `/mnt` and, if the device is encrypted, use
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to close the
 corresponding device in `/dev/mapper`.
 
@@ -38,20 +37,23 @@ device:
 mnt-dev.sh [mount|unmount|umount] [device]
 ```
 
-In other words, you could mount `/dev/sdb1` by running the script
-normally, without arguments. But if the script would detect more than
-one connected device, you could bypass the menu by running:
+So, you could mount `/dev/sdb1` by running the script without
+arguments – and select the device from the menu, if it detects more
+than one – or you could run:
 
 ```
 mnt-dev.sh mount /dev/sdb1
 ```
 
-You could then unmount it by changing `mount` above to `unmount` or
-`umount`.
+To unmount it in this way, simply replace `mount` with `unmount` or
+`umount` in the command above, as in:
+
+```
+mnt-dev.sh unmount /dev/sdb1
+```
 
 If you prefer to mount devices in a different directory, say,
-`/media`, rather than `/mnt`, simply change the value of `PNT` on line
-four:
+`/media`, simply change the value of `PNT` on line four:
 
 ```
 PNT="mnt"
