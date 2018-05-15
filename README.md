@@ -1,4 +1,4 @@
-# mnt-usb
+# mnt-dev
 
 ## ABOUT
 
@@ -35,7 +35,7 @@ The script accepts two arguments for mounting or unmounting a specific
 device:
 
 ```
-mnt-usb.sh [mount|unmount|umount] [device]
+mnt-dev.sh [mount|unmount|umount] [device]
 ```
 
 In other words, you could mount `/dev/sdb1` by running the script
@@ -43,7 +43,7 @@ normally, without arguments. But if the script would detect more than
 one connected device, you could bypass the menu by running:
 
 ```
-mnt-usb.sh mount /dev/sdb1
+mnt-dev.sh mount /dev/sdb1
 ```
 
 You could then unmount it by changing `mount` above to `unmount` or
@@ -72,5 +72,5 @@ Unlicense](https://choosealicense.com/licenses/unlicense/).
 
 ## FEEDBACK
 
-* http://github.com/brianchase/mnt-usb
+* http://github.com/brianchase/mnt-dev
 
