@@ -56,7 +56,7 @@ mount-a1 () {
       CL="$(lsblk -npo FSTYPE ${A1[i]})"
       if [ "$CL" = "crypto_LUKS" ]; then
         if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
-          ! echo "Device ${A1[$i]:5} already exists!"
+          ! echo "${A1[$i]:5} already exists!"
           chk-mount
         else
           sudo cryptsetup open ${A1[i]} ${A1[$i]:5}
@@ -162,6 +162,7 @@ chk-a1-arg () {
   done
   if [ "${A1[0]}" != "$1" ]; then
     echo "$1 not found!"
+    exit 1
   fi
 }
 
@@ -182,6 +183,7 @@ chk-a2-arg () {
   done
   if [ "${A2[0]}" != "$1" ]; then
     echo "$1 not found!"
+    exit 1
   fi
 }
 
