@@ -88,7 +88,6 @@ unmount-a2 () {
 
 menu () {
   until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
-    N="0"
     echo -e "Please choose:\n"
     if [ "${#A1[*]}" -ge "1" ]; then
       list-a1
@@ -124,7 +123,7 @@ loop-menu () {
   echo -e "\nReturn to menu? [y/n]"
   read LOOP
   if [ "$LOOP" = "y" ]; then
-    unset {A1,A2,B1,B2,OP}
+    unset {A1,A2,B1,B2,N,OP}
     arrays-a
     arrays-b
 
