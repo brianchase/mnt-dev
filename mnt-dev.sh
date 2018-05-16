@@ -147,23 +147,29 @@ chk-menu () {
 }
 
 chk-a1-arg () {
-  if [[ "${A1[@]}" =~ "$1" ]]; then
-    unset {A1,B1}
-    A1[0]="$1"
-    B1[0]="/$PNT/${A1[0]:5}"
-    mount-a1
-  else
+  for i in "${A1[@]}"; do
+    if [ "$i" = "$1" ]; then
+      unset {A1,B1}
+      A1[0]="$1"
+      B1[0]="/$PNT/${A1[0]:5}"
+      mount-a1
+    fi
+  done
+  if [ "${A1[0]}" != "$1" ]; then
     echo "$1 not found!"
   fi
 }
 
 chk-a2-arg () {
-  if [[ "${A2[@]}" =~ "$1" ]]; then
-    unset {A2,B2}
-    A2[0]="$1"
-    B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
-    unmount-a2
-  else
+  for i in "${A2[@]}"; do
+    if [ "$i" = "$1" ]; then
+      unset {A2,B2}
+      A2[0]="$1"
+      B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
+      unmount-a2
+    fi
+  done
+  if [ "${A2[0]}" != "$1" ]; then
     echo "$1 not found!"
   fi
 }
