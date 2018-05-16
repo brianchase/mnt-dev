@@ -86,19 +86,8 @@ unmount-a2 () {
   done
 }
 
-menu-count () {
-  MC="$((${#A1[*]} + ${#A2[*]} + 1))"
-  if [ "${#A1[*]}" -gt "1" ]; then
-    ((MC += 1))
-  fi
-  if [ "${#A2[*]}" -gt "1" ]; then
-    ((MC += 1))
-  fi
-}
-
 menu () {
-  menu-count
-  until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$MC" ]; do
+  until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
     N="0"
     echo -e "Please choose:\n"
     if [ "${#A1[*]}" -ge "1" ]; then
@@ -113,9 +102,9 @@ menu () {
     if [ "${#A2[*]}" -gt "1" ]; then
       echo -e "\t$((N += 1)). Unmount all listed devices"
     fi
-    echo -e "\t$MC. Exit"
+    echo -e "\t$((N += 1)). Exit"
     read OP
-    if [ "$OP" = "$MC" ]; then
+    if [ "$OP" = "$N" ]; then
       exit 1
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
       prune-a1
@@ -125,7 +114,7 @@ menu () {
       unmount-a2
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" -a "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
       mount-a1
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" -a "$OP" -lt "$MC" ]; then
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" -a "$OP" -lt "$N" ]; then
       unmount-a2
     fi
   done
