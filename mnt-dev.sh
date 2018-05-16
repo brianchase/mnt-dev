@@ -146,6 +146,12 @@ chk-menu () {
 }
 
 chk-a1-arg () {
+  for i in "${A2[@]}"; do
+    if [ "$i" = "$1" ]; then
+      echo "$1 is already mounted!"
+      exit 1
+    fi
+  done
   for i in "${A1[@]}"; do
     if [ "$i" = "$1" ]; then
       unset {A1,B1}
@@ -160,6 +166,12 @@ chk-a1-arg () {
 }
 
 chk-a2-arg () {
+  for i in "${A1[@]}"; do
+    if [ "$i" = "$1" ]; then
+      echo "$1 is not mounted!"
+      exit 1
+    fi
+  done
   for i in "${A2[@]}"; do
     if [ "$i" = "$1" ]; then
       unset {A2,B2}
