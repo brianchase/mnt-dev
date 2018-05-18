@@ -158,6 +158,7 @@ chk-a1-arg () {
       A1[0]="$1"
       B1[0]="/$PNT/${A1[0]:5}"
       mount-a1
+      break;
     fi
   done
   if [ "${A1[0]}" != "$1" ]; then
@@ -179,6 +180,7 @@ chk-a2-arg () {
       A2[0]="$1"
       B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
       unmount-a2
+      break;
     fi
   done
   if [ "${A2[0]}" != "$1" ]; then
