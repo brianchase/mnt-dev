@@ -10,7 +10,7 @@ rmdir-b2 () {
 }
 
 chk-mount () {
-  if [ "$?" -ne "0" ]; then
+  if [ "$?" -ne 0 ]; then
     echo "Failed to mount ${A1[i]}!"
     rmdir-b2
   fi
@@ -49,12 +49,12 @@ mount-a1 () {
     unset {MQ,CL}
     echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
     read MQ
-    if [ "$MQ" = "y" ]; then
+    if [ "$MQ" = y ]; then
       if [ ! -d "${B1[i]}" ]; then
         sudo mkdir -p ${B1[i]}
       fi
       CL="$(lsblk -npo FSTYPE ${A1[i]})"
-      if [ "$CL" = "crypto_LUKS" ]; then
+      if [ "$CL" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
           ! echo "${A1[$i]:5} already exists!"
           chk-mount
@@ -76,7 +76,7 @@ unmount-a2 () {
     unset UQ
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
     read UQ
-    if [ "$UQ" = "y" ]; then
+    if [ "$UQ" = y ]; then
       sudo umount ${B2[i]}
       if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
         sudo cryptsetup close ${A2[$i]:5}
@@ -89,16 +89,16 @@ unmount-a2 () {
 menu () {
   until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
     echo -e "Please choose:\n"
-    if [ "${#A1[*]}" -ge "1" ]; then
+    if [ "${#A1[*]}" -ge 1 ]; then
       list-a1
     fi
-    if [ "${#A2[*]}" -ge "1" ]; then
+    if [ "${#A2[*]}" -ge 1 ]; then
       list-a2
     fi
-    if [ "${#A1[*]}" -gt "1" ]; then
+    if [ "${#A1[*]}" -gt 1 ]; then
       echo -e "\t$((N += 1)). Mount all listed devices"
     fi
-    if [ "${#A2[*]}" -gt "1" ]; then
+    if [ "${#A2[*]}" -gt 1 ]; then
       echo -e "\t$((N += 1)). Unmount all listed devices"
     fi
     echo -e "\t$((N += 1)). Exit"
@@ -122,7 +122,7 @@ menu () {
 loop-menu () {
   echo -e "\nReturn to menu? [y/n]"
   read LOOP
-  if [ "$LOOP" = "y" ]; then
+  if [ "$LOOP" = y ]; then
     unset {A1,A2,B1,B2,N,OP}
     arrays-a
     arrays-b
@@ -135,9 +135,9 @@ loop-menu () {
 }
 
 chk-menu () {
-  if [ "${#A1[*]}" -eq "1" ] && [ "${#A2[*]}" -eq "0" ]; then
+  if [ "${#A1[*]}" -eq 1 ] && [ "${#A2[*]}" -eq 0 ]; then
     mount-a1
-  elif [ "${#A1[*]}" -eq "0" ] && [ "${#A2[*]}" -eq "1" ]; then
+  elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
     unmount-a2
   else
     menu
@@ -146,8 +146,8 @@ chk-menu () {
 }
 
 chk-a1-arg () {
-  if [ "$1" = "all" ]; then
-    if [ "${#A1[*]}" -eq "0" ]; then
+  if [ "$1" = all ]; then
+    if [ "${#A1[*]}" -eq 0 ]; then
       echo "All connected devices are mounted!"
       exit 1
     else
@@ -177,8 +177,8 @@ chk-a1-arg () {
 }
 
 chk-a2-arg () {
-  if [ "$1" = "all" ]; then
-    if [ "${#A2[*]}" -eq "0" ]; then
+  if [ "$1" = all ]; then
+    if [ "${#A2[*]}" -eq 0 ]; then
       echo "No connected devices are mounted!"
       exit 1
     else
@@ -209,7 +209,7 @@ chk-a2-arg () {
 
 arrays-a () {
   A1=($(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]"))
-  if [ "${#A1[*]}" -eq "0" ]; then
+  if [ "${#A1[*]}" -eq 0 ]; then
     echo "No connected devices!"
     exit 1
   else
