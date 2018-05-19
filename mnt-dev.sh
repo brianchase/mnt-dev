@@ -154,10 +154,6 @@ chk-a1-arg () {
       mount-a1
     fi
   else
-    if [ "${A1[0]}" != "$1" ]; then
-      echo "No '$1' found!"
-      exit 1
-    fi
     for i in "${A2[@]}"; do
       if [ "$i" = "$1" ]; then
         echo "'$1' is mounted!"
@@ -173,6 +169,10 @@ chk-a1-arg () {
         break;
       fi
     done
+    if [ "${A1[0]}" != "$1" ]; then
+      echo "No '$1' found!"
+      exit 1
+    fi
   fi
 }
 
@@ -185,10 +185,6 @@ chk-a2-arg () {
       unmount-a2
     fi
   else
-    if [ "${A2[0]}" != "$1" ]; then
-      echo "No '$1' found!"
-      exit 1
-    fi
     for i in "${A1[@]}"; do
       if [ "$i" = "$1" ]; then
         echo "'$1' is not mounted!"
@@ -204,6 +200,10 @@ chk-a2-arg () {
         break;
       fi
     done
+    if [ "${A2[0]}" != "$1" ]; then
+      echo "No '$1' found!"
+      exit 1
+    fi
   fi
 }
 
