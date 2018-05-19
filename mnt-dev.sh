@@ -208,12 +208,8 @@ chk-a2-arg () {
 }
 
 arrays-a () {
-  readarray -t A1 <<< "$(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]")"
-  if [ -z "${A1[0]}" ]; then
-
-# If no devices are connected, array "${A1[0]}" is null, though
-# "${#A1[*]}" is 1, not 0, as you might expect.
-
+  A1=($(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]"))
+  if [ "${#A1[*]}" -eq "0" ]; then
     echo "No connected devices!"
     exit 1
   else
