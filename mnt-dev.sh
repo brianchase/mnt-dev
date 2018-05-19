@@ -146,46 +146,64 @@ chk-menu () {
 }
 
 chk-a1-arg () {
-  for i in "${A2[@]}"; do
-    if [ "$i" = "$1" ]; then
-      echo "$1 is already mounted!"
+  if [ "$1" = "all" ]; then
+    if [ "${#A1[*]}" -eq "0" ]; then
+      echo "All connected devices are mounted!"
+      exit 1
+    else
+      mount-a1
+    fi
+  else
+    if [ "${A1[0]}" != "$1" ]; then
+      echo "No '$1' found!"
       exit 1
     fi
-  done
-  for i in "${A1[@]}"; do
-    if [ "$i" = "$1" ]; then
-      unset {A1,B1}
-      A1[0]="$1"
-      B1[0]="/$PNT/${A1[0]:5}"
-      mount-a1
-      break;
-    fi
-  done
-  if [ "${A1[0]}" != "$1" ]; then
-    echo "$1 not found!"
-    exit 1
+    for i in "${A2[@]}"; do
+      if [ "$i" = "$1" ]; then
+        echo "'$1' is mounted!"
+        exit 1
+      fi
+    done
+    for i in "${A1[@]}"; do
+      if [ "$i" = "$1" ]; then
+        unset {A1,B1}
+        A1[0]="$1"
+        B1[0]="/$PNT/${A1[0]:5}"
+        mount-a1
+        break;
+      fi
+    done
   fi
 }
 
 chk-a2-arg () {
-  for i in "${A1[@]}"; do
-    if [ "$i" = "$1" ]; then
-      echo "$1 is not mounted!"
+  if [ "$1" = "all" ]; then
+    if [ "${#A2[*]}" -eq "0" ]; then
+      echo "No connected devices are mounted!"
+      exit 1
+    else
+      unmount-a2
+    fi
+  else
+    if [ "${A2[0]}" != "$1" ]; then
+      echo "No '$1' found!"
       exit 1
     fi
-  done
-  for i in "${A2[@]}"; do
-    if [ "$i" = "$1" ]; then
-      unset {A2,B2}
-      A2[0]="$1"
-      B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
-      unmount-a2
-      break;
-    fi
-  done
-  if [ "${A2[0]}" != "$1" ]; then
-    echo "$1 not found!"
-    exit 1
+    for i in "${A1[@]}"; do
+      if [ "$i" = "$1" ]; then
+        echo "'$1' is not mounted!"
+        exit 1
+      fi
+    done
+    for i in "${A2[@]}"; do
+      if [ "$i" = "$1" ]; then
+        unset {A2,B2}
+        A2[0]="$1"
+        B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
+        unmount-a2
+        break;
+      fi
+    done
   fi
 }
 
