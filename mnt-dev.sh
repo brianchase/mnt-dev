@@ -247,7 +247,7 @@ arrays-b () {
 arrays-a
 arrays-b
 case $1 in
-  mount) chk-a1-arg $2 ;;
-  unmount | umount) chk-a2-arg $2 ;;
+  mount) chk-a1-arg "$2" ;;
+  unmount | umount) chk-a2-arg "$2" ;;
   *) chk-menu ;;
 esac
