@@ -9,11 +9,9 @@ rmdir-b2 () {
   fi
 }
 
-chk-mount () {
-  if [ "$?" -ne 0 ]; then
-    echo "Failed to mount ${A1[i]}!"
-    rmdir-b2
-  fi
+mount-error () {
+  echo "$1"
+  sudo rmdir ${B1[i]}
 }
 
 mount-a1 () {
@@ -28,16 +26,19 @@ mount-a1 () {
       CL="$(lsblk -npo FSTYPE ${A1[i]})"
       if [ "$CL" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
-          ! echo "${A1[$i]:5} already exists!"
-          chk-mount
+          mount-error "${A1[$i]:5} already exists!"
         else
-          sudo cryptsetup open ${A1[i]} ${A1[$i]:5}
-          sudo mount /dev/mapper/${A1[$i]:5} ${B1[i]} 2>/dev/null
-          chk-mount
+          if ! sudo cryptsetup open ${A1[i]} ${A1[$i]:5}; then
+            mount-error "Failed to open ${A1[i]} at /dev/mapper/${A1[$i]:5}!"
+          fi
+          if ! sudo mount /dev/mapper/${A1[$i]:5} ${B1[i]} 2>/dev/null; then
+            mount-error "Failed to mount ${A1[i]}!"
+          fi
         fi
       else
-        sudo mount ${A1[i]} ${B1[i]} 2>/dev/null
-        chk-mount
+        if ! sudo mount ${A1[i]} ${B1[i]} 2>/dev/null; then
+          mount-error "Failed to mount ${A1[i]}!"
+        fi
       fi
     fi
   done
@@ -53,7 +54,9 @@ unmount-a2 () {
       if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
         sudo cryptsetup close ${A2[$i]:5}
       fi
-      rmdir-b2
+      if [ -d "${B2[i]}" ]; then
+        sudo rmdir ${B2[i]}
+      fi
     fi
   done
 }
