@@ -16,34 +16,6 @@ chk-mount () {
   fi
 }
 
-list-a1 () {
-  for i in "${!A1[@]}"; do
-    echo -e "\t$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
-  done
-}
-
-list-a2 () {
-  for i in "${!A2[@]}"; do
-    echo -e "\t$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
-  done
-}
-
-prune-a1 () {
-  TempA="${A1[(($OP - 1))]}"
-  TempB="${B1[(($OP - 1))]}"
-  unset {A1,B1}
-  A1[0]="$TempA"
-  B1[0]="$TempB"
-}
-
-prune-a2 () {
-  TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
-  TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
-  unset {A2,B2}
-  A2[0]="$TempA"
-  B2[0]="$TempB"
-}
-
 mount-a1 () {
   for i in "${!A1[@]}"; do
     unset {MQ,CL}
@@ -84,6 +56,34 @@ unmount-a2 () {
       rmdir-b2
     fi
   done
+}
+
+list-a1 () {
+  for i in "${!A1[@]}"; do
+    echo -e "\t$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
+  done
+}
+
+list-a2 () {
+  for i in "${!A2[@]}"; do
+    echo -e "\t$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
+  done
+}
+
+prune-a1 () {
+  TempA="${A1[(($OP - 1))]}"
+  TempB="${B1[(($OP - 1))]}"
+  unset {A1,B1}
+  A1[0]="$TempA"
+  B1[0]="$TempB"
+}
+
+prune-a2 () {
+  TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
+  TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
+  unset {A2,B2}
+  A2[0]="$TempA"
+  B2[0]="$TempB"
 }
 
 menu () {
