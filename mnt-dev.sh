@@ -226,7 +226,7 @@ arrays-a () {
         A2+=("$i")
         for j in "${!A1[@]}"; do
           if [ "${A1[$j]}" = "$i" ]; then
-            unset A1[$j]
+            unset 'A1[$j]'
             A1=("${A1[@]}")
           fi
         done
