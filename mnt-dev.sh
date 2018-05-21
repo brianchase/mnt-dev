@@ -68,13 +68,13 @@ unmount-a2 () {
 
 list-a1 () {
   for i in "${!A1[@]}"; do
-    echo -e "\t$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
+    printf '\t%s\n' "$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
   done
 }
 
 list-a2 () {
   for i in "${!A2[@]}"; do
-    echo -e "\t$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
+    printf '\t%s\n' "$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
   done
 }
 
@@ -96,7 +96,7 @@ prune-a2 () {
 
 menu () {
   until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
-    echo -e "Please choose:\n"
+    printf '%s\n\n' "Please choose:"
     if [ "${#A1[*]}" -ge 1 ]; then
       list-a1
     fi
@@ -104,12 +104,12 @@ menu () {
       list-a2
     fi
     if [ "${#A1[*]}" -gt 1 ]; then
-      echo -e "\t$((N += 1)). Mount all listed devices"
+      printf '\t%s\n' "$((N += 1)). Mount all listed devices"
     fi
     if [ "${#A2[*]}" -gt 1 ]; then
-      echo -e "\t$((N += 1)). Unmount all listed devices"
+      printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
     fi
-    echo -e "\t$((N += 1)). Exit"
+    printf '\t%s\n' "$((N += 1)). Exit"
     read -r OP
     if [ "$OP" = "$N" ]; then
       exit 1
@@ -128,7 +128,7 @@ menu () {
 }
 
 loop-menu () {
-  echo -e "\nReturn to menu? [y/n]"
+  printf '\n%s\n' "Return to menu? [y/n]"
   read -r LOOP
   if [ "$LOOP" = y ]; then
     unset {A1,A2,B1,B2,N,OP}
@@ -226,7 +226,7 @@ arrays-a () {
         A2+=("$i")
         for j in "${!A1[@]}"; do
           if [ "${A1[$j]}" = "$i" ]; then
-            unset 'A1[$j]'
+            unset "A1[$j]"
             A1=("${A1[@]}")
           fi
         done
