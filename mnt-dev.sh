@@ -5,13 +5,13 @@ PNT="mnt"
 
 rmdir-b2 () {
   if [ -d "${B2[i]}" ]; then
-    sudo rmdir ${B2[i]}
+    sudo rmdir "${B2[i]}"
   fi
 }
 
 mount-error () {
   echo "$1"
-  sudo rmdir ${B1[i]}
+  sudo rmdir "${B1[i]}"
 }
 
 mount-a1 () {
@@ -21,22 +21,22 @@ mount-a1 () {
     read -r MQ
     if [ "$MQ" = y ]; then
       if [ ! -d "${B1[i]}" ]; then
-        sudo mkdir -p ${B1[i]}
+        sudo mkdir -p "${B1[i]}"
       fi
-      CL="$(lsblk -npo FSTYPE ${A1[i]})"
+      CL="$(lsblk -npo FSTYPE "${A1[i]}")"
       if [ "$CL" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
           mount-error "${A1[$i]:5} already exists!"
         else
-          if ! sudo cryptsetup open ${A1[i]} ${A1[$i]:5}; then
+          if ! sudo cryptsetup open "${A1[i]}" "${A1[$i]:5}"; then
             mount-error "Failed to open /dev/mapper/${A1[$i]:5}!"
           fi
-          if ! sudo mount /dev/mapper/${A1[$i]:5} ${B1[i]} 2>/dev/null; then
+          if ! sudo mount /dev/mapper/"${A1[$i]:5}" "${B1[i]}" 2>/dev/null; then
             mount-error "Failed to mount ${A1[i]}!"
           fi
         fi
       else
-        if ! sudo mount ${A1[i]} ${B1[i]} 2>/dev/null; then
+        if ! sudo mount "${A1[i]}" "${B1[i]}" 2>/dev/null; then
           mount-error "Failed to mount ${A1[i]}!"
         fi
       fi
@@ -50,16 +50,16 @@ unmount-a2 () {
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
     read -r UQ
     if [ "$UQ" = y ]; then
-      if ! sudo umount ${B2[i]}; then
+      if ! sudo umount "${B2[i]}"; then
         echo "Failed to unmount ${A2[i]}!"
       else
         if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
-          if ! sudo cryptsetup close ${A2[$i]:5}; then
+          if ! sudo cryptsetup close "${A2[$i]:5}"; then
             echo "Failed to close /dev/mapper/${A2[$i]:5}!"
           fi
         fi
         if [ -d "${B2[i]}" ]; then
-          sudo rmdir ${B2[i]}
+          sudo rmdir "${B2[i]}"
         fi
       fi
     fi
@@ -203,7 +203,7 @@ chk-a2-arg () {
       if [ "$i" = "$1" ]; then
         unset {A2,B2}
         A2[0]="$1"
-        B2[0]="$(lsblk -no MOUNTPOINT ${A2[0]} | tail -1)"
+        B2[0]="$(lsblk -no MOUNTPOINT "${A2[0]}" | tail -1)"
         unmount-a2
         break;
       fi
@@ -222,7 +222,7 @@ arrays-a () {
     exit 1
   else
     for i in "${A1[@]}"; do
-      if [ "$(lsblk -no MOUNTPOINT $i)" ]; then
+      if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
         A2+=("$i")
         for j in "${!A1[@]}"; do
           if [ "${A1[$j]}" = "$i" ]; then
@@ -240,7 +240,7 @@ arrays-b () {
     B1+=("/$PNT/${A1[$i]:5}")
   done
   for i in "${!A2[@]}"; do
-    B2+=("$(lsblk -no MOUNTPOINT ${A2[$i]} | tail -1)")
+    B2+=("$(lsblk -no MOUNTPOINT "${A2[$i]}" | tail -1)")
   done
 }
 
