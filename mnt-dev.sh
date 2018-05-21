@@ -48,7 +48,7 @@ mount-a1 () {
   for i in "${!A1[@]}"; do
     unset {MQ,CL}
     echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
-    read MQ
+    read -r MQ
     if [ "$MQ" = y ]; then
       if [ ! -d "${B1[i]}" ]; then
         sudo mkdir -p ${B1[i]}
@@ -75,7 +75,7 @@ unmount-a2 () {
   for i in "${!A2[@]}"; do
     unset UQ
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
-    read UQ
+    read -r UQ
     if [ "$UQ" = y ]; then
       sudo umount ${B2[i]}
       if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
@@ -102,7 +102,7 @@ menu () {
       echo -e "\t$((N += 1)). Unmount all listed devices"
     fi
     echo -e "\t$((N += 1)). Exit"
-    read OP
+    read -r OP
     if [ "$OP" = "$N" ]; then
       exit 1
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
@@ -121,7 +121,7 @@ menu () {
 
 loop-menu () {
   echo -e "\nReturn to menu? [y/n]"
-  read LOOP
+  read -r LOOP
   if [ "$LOOP" = y ]; then
     unset {A1,A2,B1,B2,N,OP}
     arrays-a
