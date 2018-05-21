@@ -29,7 +29,7 @@ mount-a1 () {
           mount-error "${A1[$i]:5} already exists!"
         else
           if ! sudo cryptsetup open ${A1[i]} ${A1[$i]:5}; then
-            mount-error "Failed to open ${A1[i]} at /dev/mapper/${A1[$i]:5}!"
+            mount-error "Failed to open /dev/mapper/${A1[$i]:5}!"
           fi
           if ! sudo mount /dev/mapper/${A1[$i]:5} ${B1[i]} 2>/dev/null; then
             mount-error "Failed to mount ${A1[i]}!"
@@ -50,12 +50,17 @@ unmount-a2 () {
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
     read -r UQ
     if [ "$UQ" = y ]; then
-      sudo umount ${B2[i]}
-      if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
-        sudo cryptsetup close ${A2[$i]:5}
-      fi
-      if [ -d "${B2[i]}" ]; then
-        sudo rmdir ${B2[i]}
+      if ! sudo umount ${B2[i]}; then
+        echo "Failed to unmount ${A2[i]}!"
+      else
+        if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
+          if ! sudo cryptsetup close ${A2[$i]:5}; then
+            echo "Failed to close /dev/mapper/${A2[$i]:5}!"
+          fi
+        fi
+        if [ -d "${B2[i]}" ]; then
+          sudo rmdir ${B2[i]}
+        fi
       fi
     fi
   done
