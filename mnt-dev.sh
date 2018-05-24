@@ -3,12 +3,6 @@
 # The script mount devices in /mnt:
 PNT="mnt"
 
-rmdir-b2 () {
-  if [ -d "${B2[i]}" ]; then
-    sudo rmdir "${B2[i]}"
-  fi
-}
-
 mount-error () {
   echo "$1"
   sudo rmdir "${B1[i]}"
