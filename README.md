@@ -33,7 +33,7 @@ corresponding device in `/dev/mapper`.
 The script accepts two arguments:
 
 ```
-mnt-dev.sh [mount|unmount|umount] [device|all]
+$ mnt-dev.sh [mount|unmount|umount] [device|all]
 ```
 
 So, to mount a specific device, such as `/dev/sdb1`, you could run the
@@ -41,28 +41,28 @@ script without arguments – and select it from the menu, if the script
 detects more than one – or you could run:
 
 ```
-mnt-dev.sh mount /dev/sdb1
+$ mnt-dev.sh mount /dev/sdb1
 ```
 
 To unmount it in this way, use `unmount` or `umount` with the device's
 name, as in:
 
 ```
-mnt-dev.sh unmount /dev/sdb1
+$ mnt-dev.sh unmount /dev/sdb1
 ```
 
 The arguments `mount all` tell the script to mount all connected
 devices:
 
 ```
-mnt-dev.sh mount all
+$ mnt-dev.sh mount all
 ```
 
 The arguments `unmount all` or `umount all` tell the script to unmount
 all connected devices, as in:
 
 ```
-mnt-dev.sh unmount all
+$ mnt-dev.sh unmount all
 ```
 
 You can always save keystrokes by running the script without options,
@@ -74,8 +74,6 @@ If you prefer to mount devices in a different directory, say,
 ```
 PNT="mnt"
 ```
-
-Please see the script for further comments.
 
 ## LICENSE
 
