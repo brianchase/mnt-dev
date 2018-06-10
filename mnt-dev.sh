@@ -10,7 +10,7 @@ mount-error () {
 
 mount-a1 () {
   for i in "${!A1[@]}"; do
-    unset {MQ,CL}
+    unset MQ CL
     echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
     read -r MQ
     if [ "$MQ" = y ]; then
@@ -75,7 +75,7 @@ list-a2 () {
 prune-a1 () {
   TempA="${A1[(($OP - 1))]}"
   TempB="${B1[(($OP - 1))]}"
-  unset {A1,B1}
+  unset A1 B1
   A1[0]="$TempA"
   B1[0]="$TempB"
 }
@@ -83,7 +83,7 @@ prune-a1 () {
 prune-a2 () {
   TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
   TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
-  unset {A2,B2}
+  unset A2 B2
   A2[0]="$TempA"
   B2[0]="$TempB"
 }
@@ -125,7 +125,7 @@ loop-menu () {
   printf '\n%s\n' "Return to menu? [y/n]"
   read -r LOOP
   if [ "$LOOP" = y ]; then
-    unset {A1,A2,B1,B2,N,OP}
+    unset A1 A2 B1 B2 N OP
     arrays-a
     arrays-b
 
@@ -164,7 +164,7 @@ chk-a1-arg () {
     done
     for i in "${A1[@]}"; do
       if [ "$i" = "$1" ]; then
-        unset {A1,B1}
+        unset A1 B1
         A1[0]="$1"
         B1[0]="/$PNT/${A1[0]:5}"
         mount-a1
@@ -195,7 +195,7 @@ chk-a2-arg () {
     done
     for i in "${A2[@]}"; do
       if [ "$i" = "$1" ]; then
-        unset {A2,B2}
+        unset A2 B2
         A2[0]="$1"
         B2[0]="$(lsblk -no MOUNTPOINT "${A2[0]}" | tail -1)"
         unmount-a2
