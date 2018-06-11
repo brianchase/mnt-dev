@@ -3,12 +3,12 @@
 # The script mount devices in /mnt:
 PNT="mnt"
 
-mount-error () {
+mount_error () {
   echo "$1"
   sudo rmdir "${B1[i]}"
 }
 
-mount-a1 () {
+mount_a1 () {
   for i in "${!A1[@]}"; do
     unset MQ CL
     echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
@@ -20,25 +20,25 @@ mount-a1 () {
       CL="$(lsblk -npo FSTYPE "${A1[i]}")"
       if [ "$CL" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
-          mount-error "${A1[$i]:5} already exists!"
+          mount_error "${A1[$i]:5} already exists!"
         else
           if ! sudo cryptsetup open "${A1[i]}" "${A1[$i]:5}"; then
-            mount-error "Failed to open /dev/mapper/${A1[$i]:5}!"
+            mount_error "Failed to open /dev/mapper/${A1[$i]:5}!"
           fi
           if ! sudo mount /dev/mapper/"${A1[$i]:5}" "${B1[i]}" 2>/dev/null; then
-            mount-error "Failed to mount ${A1[i]}!"
+            mount_error "Failed to mount ${A1[i]}!"
           fi
         fi
       else
         if ! sudo mount "${A1[i]}" "${B1[i]}" 2>/dev/null; then
-          mount-error "Failed to mount ${A1[i]}!"
+          mount_error "Failed to mount ${A1[i]}!"
         fi
       fi
     fi
   done
 }
 
-unmount-a2 () {
+unmount_a2 () {
   for i in "${!A2[@]}"; do
     unset UQ
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
@@ -60,19 +60,19 @@ unmount-a2 () {
   done
 }
 
-list-a1 () {
+list_a1 () {
   for i in "${!A1[@]}"; do
     printf '\t%s\n' "$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
   done
 }
 
-list-a2 () {
+list_a2 () {
   for i in "${!A2[@]}"; do
     printf '\t%s\n' "$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
   done
 }
 
-prune-a1 () {
+prune_a1 () {
   TempA="${A1[(($OP - 1))]}"
   TempB="${B1[(($OP - 1))]}"
   unset A1 B1
@@ -80,7 +80,7 @@ prune-a1 () {
   B1[0]="$TempB"
 }
 
-prune-a2 () {
+prune_a2 () {
   TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
   TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
   unset A2 B2
@@ -92,10 +92,10 @@ menu () {
   until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
     printf '%s\n\n' "Please choose:"
     if [ "${#A1[*]}" -ge 1 ]; then
-      list-a1
+      list_a1
     fi
     if [ "${#A2[*]}" -ge 1 ]; then
-      list-a2
+      list_a2
     fi
     if [ "${#A1[*]}" -gt 1 ]; then
       printf '\t%s\n' "$((N += 1)). Mount all listed devices"
@@ -108,52 +108,52 @@ menu () {
     if [ "$OP" = "$N" ]; then
       exit 1
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
-      prune-a1
-      mount-a1
+      prune_a1
+      mount_a1
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
-      prune-a2
-      unmount-a2
+      prune_a2
+      unmount_a2
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
-      mount-a1
+      mount_a1
     elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" ] && [ "$OP" -lt "$N" ]; then
-      unmount-a2
+      unmount_a2
     fi
   done
 }
 
-loop-menu () {
+loop_menu () {
   printf '\n%s\n' "Return to menu? [y/n]"
   read -r LOOP
   if [ "$LOOP" = y ]; then
     unset A1 A2 B1 B2 N OP
-    arrays-a
-    arrays-b
+    arrays_a
+    arrays_b
 
-# Go to chk-menu here, not menu. Why? Because at this point, you might
+# Go to chk_menu here, not menu. Why? Because at this point, you might
 # have unmounted and removed a device and plugged another in.
 
-    chk-menu
+    chk_menu
   fi
 }
 
-chk-menu () {
+chk_menu () {
   if [ "${#A1[*]}" -eq 1 ] && [ "${#A2[*]}" -eq 0 ]; then
-    mount-a1
+    mount_a1
   elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
-    unmount-a2
+    unmount_a2
   else
     menu
-    loop-menu
+    loop_menu
   fi
 }
 
-chk-a1-arg () {
+chk_a1_arg () {
   if [ "$1" = all ]; then
     if [ "${#A1[*]}" -eq 0 ]; then
       echo "All connected devices are mounted!"
       exit 1
     else
-      mount-a1
+      mount_a1
     fi
   else
     for i in "${A2[@]}"; do
@@ -167,7 +167,7 @@ chk-a1-arg () {
         unset A1 B1
         A1[0]="$1"
         B1[0]="/$PNT/${A1[0]:5}"
-        mount-a1
+        mount_a1
         break;
       fi
     done
@@ -178,13 +178,13 @@ chk-a1-arg () {
   fi
 }
 
-chk-a2-arg () {
+chk_a2_arg () {
   if [ "$1" = all ]; then
     if [ "${#A2[*]}" -eq 0 ]; then
       echo "No connected devices are mounted!"
       exit 1
     else
-      unmount-a2
+      unmount_a2
     fi
   else
     for i in "${A1[@]}"; do
@@ -198,7 +198,7 @@ chk-a2-arg () {
         unset A2 B2
         A2[0]="$1"
         B2[0]="$(lsblk -no MOUNTPOINT "${A2[0]}" | tail -1)"
-        unmount-a2
+        unmount_a2
         break;
       fi
     done
@@ -209,7 +209,7 @@ chk-a2-arg () {
   fi
 }
 
-arrays-a () {
+arrays_a () {
   readarray -t A1 < <(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]")
   if [ "${#A1[*]}" -eq 0 ]; then
     echo "No connected devices!"
@@ -229,7 +229,7 @@ arrays-a () {
   fi
 }
 
-arrays-b () {
+arrays_b () {
   for i in "${!A1[@]}"; do
     B1+=("/$PNT/${A1[$i]:5}")
   done
@@ -238,10 +238,10 @@ arrays-b () {
   done
 }
 
-arrays-a
-arrays-b
+arrays_a
+arrays_b
 case $1 in
-  mount) chk-a1-arg "$2" ;;
-  unmount | umount) chk-a2-arg "$2" ;;
-  *) chk-menu ;;
+  mount) chk_a1_arg "$2" ;;
+  unmount | umount) chk_a2_arg "$2" ;;
+  *) chk_menu ;;
 esac
