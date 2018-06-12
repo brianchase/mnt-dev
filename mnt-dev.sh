@@ -87,40 +87,37 @@ prune_a2 () {
 }
 
 menu () {
-  unset N
-  printf '%s\n\n' "Please choose:"
-  if [ "${#A1[*]}" -ge 1 ]; then
-    list_a1
-  fi
-  if [ "${#A2[*]}" -ge 1 ]; then
-    list_a2
-  fi
-  if [ "${#A1[*]}" -gt 1 ]; then
-    printf '\t%s\n' "$((N += 1)). Mount all listed devices"
-  fi
-  if [ "${#A2[*]}" -gt 1 ]; then
-    printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
-  fi
-  printf '\t%s\n' "$((N += 1)). Exit"
-  read -r OP
-  case $OP in
-    ''|*[!1-9]*) menu ;;
-  esac
-  if [ "$OP" -gt "$N" ]; then
-    menu
-  elif [ "$OP" = "$N" ]; then
-    exit 1
-  elif [ "$OP" -le "${#A1[*]}" ]; then
-    prune_a1
-    mount_a1
-  elif [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
-    prune_a2
-    unmount_a2
-  elif [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
-    mount_a1
-  else
-    unmount_a2
-  fi
+  until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
+    unset N
+    printf '%s\n\n' "Please choose:"
+    if [ "${#A1[*]}" -ge 1 ]; then
+      list_a1
+    fi
+    if [ "${#A2[*]}" -ge 1 ]; then
+      list_a2
+    fi
+    if [ "${#A1[*]}" -gt 1 ]; then
+      printf '\t%s\n' "$((N += 1)). Mount all listed devices"
+    fi
+    if [ "${#A2[*]}" -gt 1 ]; then
+      printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
+    fi
+    printf '\t%s\n' "$((N += 1)). Exit"
+    read -r OP
+    if [ "$OP" = "$N" ]; then
+      exit 1
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
+      prune_a1
+      mount_a1
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
+      prune_a2
+      unmount_a2
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
+      mount_a1
+    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" ] && [ "$OP" -lt "$N" ]; then
+      unmount_a2
+    fi
+  done
 }
 
 loop_menu () {
