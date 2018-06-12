@@ -10,7 +10,6 @@ mount_error () {
 
 mount_a1 () {
   for i in "${!A1[@]}"; do
-    unset MQ CL
     echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
     read -r MQ
     if [ "$MQ" = y ]; then
@@ -40,7 +39,6 @@ mount_a1 () {
 
 unmount_a2 () {
   for i in "${!A2[@]}"; do
-    unset UQ
     echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
     read -r UQ
     if [ "$UQ" = y ]; then
