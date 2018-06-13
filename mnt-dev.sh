@@ -24,12 +24,12 @@ mount_a1 () {
           if ! sudo cryptsetup open "${A1[i]}" "${A1[i]:5}"; then
             mount_error "Failed to open /dev/mapper/${A1[i]:5}!"
           fi
-          if ! sudo mount /dev/mapper/"${A1[i]:5}" "${B1[i]}" 2>/dev/null; then
+          if ! sudo mount /dev/mapper/"${A1[i]:5}" "${B1[i]}"; then
             mount_error "Failed to mount ${A1[i]}!"
           fi
         fi
       else
-        if ! sudo mount "${A1[i]}" "${B1[i]}" 2>/dev/null; then
+        if ! sudo mount "${A1[i]}" "${B1[i]}"; then
           mount_error "Failed to mount ${A1[i]}!"
         fi
       fi
