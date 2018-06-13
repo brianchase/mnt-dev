@@ -116,7 +116,7 @@ menu_loop () {
 
 menu_choice () {
   if [ "$OP" = "$N" ]; then
-    exit 1
+    exit
   elif [ "$OP" -le "${#A1[*]}" ]; then
     prune_a1
     mount_a1
