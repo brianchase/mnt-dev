@@ -18,13 +18,13 @@ mount_a1 () {
       fi
       CL="$(lsblk -npo FSTYPE "${A1[i]}")"
       if [ "$CL" = crypto_LUKS ]; then
-        if [ -L "/dev/mapper/${A1[$i]:5}" ]; then
-          mount_error "${A1[$i]:5} already exists!"
+        if [ -L "/dev/mapper/${A1[i]:5}" ]; then
+          mount_error "${A1[i]:5} already exists!"
         else
-          if ! sudo cryptsetup open "${A1[i]}" "${A1[$i]:5}"; then
-            mount_error "Failed to open /dev/mapper/${A1[$i]:5}!"
+          if ! sudo cryptsetup open "${A1[i]}" "${A1[i]:5}"; then
+            mount_error "Failed to open /dev/mapper/${A1[i]:5}!"
           fi
-          if ! sudo mount /dev/mapper/"${A1[$i]:5}" "${B1[i]}" 2>/dev/null; then
+          if ! sudo mount /dev/mapper/"${A1[i]:5}" "${B1[i]}" 2>/dev/null; then
             mount_error "Failed to mount ${A1[i]}!"
           fi
         fi
@@ -45,9 +45,9 @@ unmount_a2 () {
       if ! sudo umount "${B2[i]}"; then
         echo "Failed to unmount ${A2[i]}!"
       else
-        if [ -L "/dev/mapper/${A2[$i]:5}" ]; then
-          if ! sudo cryptsetup close "${A2[$i]:5}"; then
-            echo "Failed to close /dev/mapper/${A2[$i]:5}!"
+        if [ -L "/dev/mapper/${A2[i]:5}" ]; then
+          if ! sudo cryptsetup close "${A2[i]:5}"; then
+            echo "Failed to close /dev/mapper/${A2[i]:5}!"
           fi
         fi
         if [ -d "${B2[i]}" ]; then
@@ -60,13 +60,13 @@ unmount_a2 () {
 
 list_a1 () {
   for i in "${!A1[@]}"; do
-    printf '\t%s\n' "$((N += 1)). Mount ${A1[$i]} at ${B1[$i]}"
+    printf '\t%s\n' "$((N += 1)). Mount ${A1[i]} at ${B1[i]}"
   done
 }
 
 list_a2 () {
   for i in "${!A2[@]}"; do
-    printf '\t%s\n' "$((N += 1)). Unmount ${A2[$i]} at ${B2[$i]}"
+    printf '\t%s\n' "$((N += 1)). Unmount ${A2[i]} at ${B2[i]}"
   done
 }
 
@@ -237,10 +237,10 @@ arrays_a () {
 
 arrays_b () {
   for i in "${!A1[@]}"; do
-    B1+=("/$PNT/${A1[$i]:5}")
+    B1+=("/$PNT/${A1[i]:5}")
   done
   for i in "${!A2[@]}"; do
-    B2+=("$(lsblk -no MOUNTPOINT "${A2[$i]}" | tail -1)")
+    B2+=("$(lsblk -no MOUNTPOINT "${A2[i]}" | tail -1)")
   done
 }
 
