@@ -86,9 +86,9 @@ prune_a2 () {
   B2[0]="$TempB"
 }
 
-menu () {
-  until [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "$N" ]; do
-    unset N
+menu_loop () {
+  while true; do
+    N=0
     printf '%s\n\n' "Please choose:"
     if [ "${#A1[*]}" -ge 1 ]; then
       list_a1
@@ -104,33 +104,39 @@ menu () {
     fi
     printf '\t%s\n' "$((N += 1)). Exit"
     read -r OP
-    if [ "$OP" = "$N" ]; then
-      exit 1
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -le "${#A1[*]}" ]; then
-      prune_a1
-      mount_a1
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
-      prune_a2
-      unmount_a2
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
-      mount_a1
-    elif [[ "$OP" =~ ^[1-9]+$ ]] && [ "${#A2[*]}" -gt "1" ] && [ "$OP" -lt "$N" ]; then
-      unmount_a2
+    case $OP in
+      ''|*[!1-9]*) continue ;;
+    esac
+    if [ "$OP" -gt "$N" ]; then
+      continue
     fi
+    break
   done
 }
 
-loop_menu () {
+menu_choice () {
+  if [ "$OP" = "$N" ]; then
+    exit 1
+  elif [ "$OP" -le "${#A1[*]}" ]; then
+    prune_a1
+    mount_a1
+  elif [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
+    prune_a2
+    unmount_a2
+  elif [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
+    mount_a1
+  else
+    unmount_a2
+  fi
+}
+
+menu_return () {
   printf '\n%s\n' "Return to menu? [y/n]"
   read -r LOOP
   if [ "$LOOP" = y ]; then
     unset A1 A2 B1 B2
     arrays_a
     arrays_b
-
-# Go to chk_menu here, not menu. Why? Because at this point, you might
-# have unmounted and removed a device and plugged another in.
-
     chk_menu
   fi
 }
@@ -141,8 +147,9 @@ chk_menu () {
   elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
     unmount_a2
   else
-    menu
-    loop_menu
+    menu_loop
+    menu_choice
+    menu_return
   fi
 }
 
