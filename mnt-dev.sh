@@ -115,7 +115,7 @@ menu_loop () {
 }
 
 menu_choice () {
-  if [ "$OP" = "$N" ]; then
+  if [ "$OP" -eq "$N" ]; then
     exit
   elif [ "$OP" -le "${#A1[*]}" ]; then
     prune_a1
