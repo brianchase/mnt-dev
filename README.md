@@ -2,7 +2,7 @@
 
 ## ABOUT
 
-This little bash script mounts and unmounts removable devices, such as
+This little Bash script mounts and unmounts removable devices, such as
 USB thumb drives. It can open and close encrypted devices with
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
 
@@ -71,9 +71,18 @@ but they come in handy when you want to run it from other scripts.
 If you prefer to mount devices in a different directory, say,
 `/media`, simply change the value of `PNT` on line four:
 
-```
+```bash
 PNT="mnt"
 ```
+
+## PORTABILITY
+
+Since the script uses arrays – more so than a script probably should –
+it's not strictly
+[POSIX](https://en.wikipedia.org/wiki/POSIX)-compliant. As a result,
+it isn't compatible with
+[Dash](http://gondor.apana.org.au/~herbert/dash/) and probably a good
+number of other shells.
 
 ## LICENSE
 
