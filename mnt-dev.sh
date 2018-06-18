@@ -116,7 +116,7 @@ menu_loop () {
 
 menu_choice () {
   if [ "$OP" -eq "$N" ]; then
-    exit
+    return 1
   elif [ "$OP" -le "${#A1[*]}" ]; then
     prune_a1
     mount_a1
@@ -130,27 +130,25 @@ menu_choice () {
   fi
 }
 
-menu_return () {
-  printf '\n%s\n' "Return to menu? [y/n]"
-  read -r LOOP
-  if [ "$LOOP" = y ]; then
+chk_arrays () {
+  while true; do
+    if [ "${#A1[*]}" -eq 1 ] && [ "${#A2[*]}" -eq 0 ]; then
+      mount_a1
+    elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
+      unmount_a2
+    else
+      menu_loop
+      if ! menu_choice; then
+        break
+      fi
+    fi
     unset A1 A2 B1 B2
     arrays_a
     arrays_b
-    chk_menu
-  fi
-}
-
-chk_menu () {
-  if [ "${#A1[*]}" -eq 1 ] && [ "${#A2[*]}" -eq 0 ]; then
-    mount_a1
-  elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
-    unmount_a2
-  else
-    menu_loop
-    menu_choice
-    menu_return
-  fi
+    if [ "$((${#A1[*]} + ${#A2[*]}))" -eq 1 ]; then
+      break
+    fi
+  done
 }
 
 chk_a1_arg () {
@@ -249,5 +247,5 @@ arrays_b
 case $1 in
   mount) chk_a1_arg "$2" ;;
   unmount | umount) chk_a2_arg "$2" ;;
-  *) chk_menu ;;
+  *) chk_arrays ;;
 esac
