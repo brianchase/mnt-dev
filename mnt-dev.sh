@@ -4,14 +4,13 @@
 PNT="mnt"
 
 mount_error () {
-  echo "$1"
+  printf '%s\n' "$1"
   sudo rmdir "${B1[i]}"
 }
 
 mount_a1 () {
   for i in "${!A1[@]}"; do
-    echo "Mount ${A1[i]} at ${B1[i]}? [y/n]"
-    read -r MQ
+    read -r -p "Mount ${A1[i]} at ${B1[i]}? [y/n] " MQ
     if [ "$MQ" = y ]; then
       if [ ! -d "${B1[i]}" ]; then
         sudo mkdir -p "${B1[i]}"
@@ -39,15 +38,14 @@ mount_a1 () {
 
 unmount_a2 () {
   for i in "${!A2[@]}"; do
-    echo "Unmount ${A2[i]} at ${B2[i]}? [y/n]"
-    read -r UQ
+    read -r -p "Unmount ${A2[i]} at ${B2[i]}? [y/n] " UQ
     if [ "$UQ" = y ]; then
       if ! sudo umount "${B2[i]}"; then
-        echo "Failed to unmount ${A2[i]}!"
+        printf '%s\n' "Failed to unmount ${A2[i]}!"
       else
         if [ -L "/dev/mapper/${A2[i]:5}" ]; then
           if ! sudo cryptsetup close "${A2[i]:5}"; then
-            echo "Failed to close /dev/mapper/${A2[i]:5}!"
+            printf '%s\n' "Failed to close /dev/mapper/${A2[i]:5}!"
           fi
         fi
         if [ -d "${B2[i]}" ]; then
@@ -154,7 +152,7 @@ chk_arrays () {
 chk_a1_arg () {
   if [ "$1" = all ]; then
     if [ "${#A1[*]}" -eq 0 ]; then
-      echo "All connected devices are mounted!"
+      printf '%s\n' "All connected devices are mounted!"
       exit 1
     else
       mount_a1
@@ -162,7 +160,7 @@ chk_a1_arg () {
   else
     for i in "${A2[@]}"; do
       if [ "$i" = "$1" ]; then
-        echo "'$1' is mounted!"
+        printf '%s\n' "'$1' is mounted!"
         exit 1
       fi
     done
@@ -176,7 +174,7 @@ chk_a1_arg () {
       fi
     done
     if [ "${A1[0]}" != "$1" ]; then
-      echo "No '$1' found!"
+      printf '%s\n' "No '$1' found!"
       exit 1
     fi
   fi
@@ -185,7 +183,7 @@ chk_a1_arg () {
 chk_a2_arg () {
   if [ "$1" = all ]; then
     if [ "${#A2[*]}" -eq 0 ]; then
-      echo "No connected devices are mounted!"
+      printf '%s\n' "No connected devices are mounted!"
       exit 1
     else
       unmount_a2
@@ -193,7 +191,7 @@ chk_a2_arg () {
   else
     for i in "${A1[@]}"; do
       if [ "$i" = "$1" ]; then
-        echo "'$1' is not mounted!"
+        printf '%s\n' "'$1' is not mounted!"
         exit 1
       fi
     done
@@ -207,7 +205,7 @@ chk_a2_arg () {
       fi
     done
     if [ "${A2[0]}" != "$1" ]; then
-      echo "No '$1' found!"
+      printf '%s\n' "No '$1' found!"
       exit 1
     fi
   fi
@@ -216,7 +214,7 @@ chk_a2_arg () {
 arrays_a () {
   readarray -t A1 < <(lsblk -po NAME,FSTYPE | grep -vE "^/dev/sd[b-z]\s+$" | grep -oE "/dev/sd[b-z][1-9]|/dev/sd[b-z]")
   if [ "${#A1[*]}" -eq 0 ]; then
-    echo "No connected devices!"
+    printf '%s\n' "No connected devices!"
     exit 1
   else
     for i in "${A1[@]}"; do
