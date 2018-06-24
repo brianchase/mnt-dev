@@ -2,8 +2,8 @@
 
 ## ABOUT
 
-This little Bash script mounts and unmounts removable devices, such as
-USB thumb drives. It can open and close encrypted devices with
+This Bash script mounts and unmounts removable devices, such as USB
+thumb drives. It can open and close encrypted devices with
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
 
 If the script detects just one connected device, it will check whether
@@ -71,14 +71,13 @@ but they come in handy when you want to run it from other scripts.
 If you prefer to mount devices in a different directory, say,
 `/media`, simply change the value of `PNT` on line four:
 
-```bash
+```
 PNT="mnt"
 ```
 
 ## PORTABILITY
 
-Since the script uses arrays – more so than a script probably should –
-it's not strictly
+Since the script uses arrays, it's not strictly
 [POSIX](https://en.wikipedia.org/wiki/POSIX)-compliant. As a result,
 it isn't compatible with
 [Dash](http://gondor.apana.org.au/~herbert/dash/) and probably a good
@@ -93,9 +92,4 @@ Unlicense](https://choosealicense.com/licenses/unlicense/).
 
 * [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) (for encrypted devices)
 * [sudo](https://www.sudo.ws/) (used with mount, umount, cryptsetup, mkdir, rmdir)
-* [util-linux](https://github.com/karelzak/util-linux/)
-
-## FEEDBACK
-
-* http://github.com/brianchase/mnt-dev
 
