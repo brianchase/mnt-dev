@@ -10,8 +10,10 @@ mount_error () {
 
 mount_a1 () {
   for i in "${!A1[@]}"; do
-    read -r -p "Mount ${A1[i]} at ${B1[i]}? [y/n] " MQ
-    if [ "$MQ" = y ]; then
+    if [ "$1" != now ]; then
+      read -r -p "Mount ${A1[i]} at ${B1[i]}? [y/n] " MQ
+    fi
+    if [ "$MQ" = y ] || [ "$1" = now ]; then
       if [ ! -d "${B1[i]}" ]; then
         sudo mkdir -p "${B1[i]}"
       fi
@@ -38,8 +40,10 @@ mount_a1 () {
 
 unmount_a2 () {
   for i in "${!A2[@]}"; do
-    read -r -p "Unmount ${A2[i]} at ${B2[i]}? [y/n] " UQ
-    if [ "$UQ" = y ]; then
+    if [ "$1" != now ]; then
+      read -r -p "Unmount ${A2[i]} at ${B2[i]}? [y/n] " UQ
+    fi
+    if [ "$UQ" = y ] || [ "$1" = now ]; then
       if ! sudo umount "${B2[i]}"; then
         printf '%s\n' "Failed to unmount ${A2[i]}!"
       else
@@ -69,16 +73,16 @@ list_a2 () {
 }
 
 prune_a1 () {
-  TempA="${A1[(($OP - 1))]}"
-  TempB="${B1[(($OP - 1))]}"
+  local TempA="${A1[(($OP - 1))]}"
+  local TempB="${B1[(($OP - 1))]}"
   unset A1 B1
   A1[0]="$TempA"
   B1[0]="$TempB"
 }
 
 prune_a2 () {
-  TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
-  TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
+  local TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
+  local TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
   unset A2 B2
   A2[0]="$TempA"
   B2[0]="$TempB"
@@ -100,12 +104,14 @@ menu_loop () {
     if [ "${#A2[*]}" -gt 1 ]; then
       printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
     fi
-    printf '\t%s\n' "$((N += 1)). Exit"
+    printf '\t%s\n' "$((N += 1)). Skip"
     read -r OP
     case $OP in
       ''|*[!1-9]*) continue ;;
     esac
-    if [ "$OP" -gt "$N" ]; then
+    if [ "$OP" -eq "$N" ]; then
+      return 1
+    elif [ "$OP" -gt "$N" ]; then
       continue
     fi
     break
@@ -113,40 +119,38 @@ menu_loop () {
 }
 
 menu_choice () {
-  if [ "$OP" -eq "$N" ]; then
-    return 1
-  elif [ "$OP" -le "${#A1[*]}" ]; then
+  if [ "$OP" -le "${#A1[*]}" ]; then
     prune_a1
-    mount_a1
+    mount_a1 now
   elif [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
     prune_a2
-    unmount_a2
+    unmount_a2 now
   elif [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
-    mount_a1
+    mount_a1 now
   else
-    unmount_a2
+    unmount_a2 now
+  fi
+}
+
+menu_return () {
+  read -r -p "Return to menu? [y/n] " RT
+  if [ "$RT" = y ]; then
+    unset A1 A2 B1 B2
+    arrays_a
+    arrays_b
+    chk_arrays
   fi
 }
 
 chk_arrays () {
-  while true; do
-    if [ "${#A1[*]}" -eq 1 ] && [ "${#A2[*]}" -eq 0 ]; then
-      mount_a1
-    elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
-      unmount_a2
-    else
-      menu_loop
-      if ! menu_choice; then
-        break
-      fi
-    fi
-    unset A1 A2 B1 B2
-    arrays_a
-    arrays_b
-    if [ "$((${#A1[*]} + ${#A2[*]}))" -eq 1 ]; then
-      break
-    fi
-  done
+  if [ "${#A1[*]}" -eq 1 ] && [ "${#A2[*]}" -eq 0 ]; then
+    mount_a1
+  elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
+    unmount_a2
+  elif menu_loop; then
+    menu_choice
+    menu_return
+  fi
 }
 
 chk_a1_arg () {
@@ -244,6 +248,6 @@ arrays_a
 arrays_b
 case $1 in
   mount) chk_a1_arg "$2" ;;
-  unmount | umount) chk_a2_arg "$2" ;;
+  unmount|umount) chk_a2_arg "$2" ;;
   *) chk_arrays ;;
 esac
