@@ -17,22 +17,17 @@ mount_a1 () {
       if [ ! -d "${B1[i]}" ]; then
         sudo mkdir -p "${B1[i]}"
       fi
-      CL="$(lsblk -npo FSTYPE "${A1[i]}")"
-      if [ "$CL" = crypto_LUKS ]; then
+      FS="$(lsblk -dnpo FSTYPE "${A1[i]}")"
+      if [ "$FS" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${A1[i]:5}" ]; then
-          mount_error "${A1[i]:5} already exists!"
-        else
-          if ! sudo cryptsetup open "${A1[i]}" "${A1[i]:5}"; then
-            mount_error "Failed to open /dev/mapper/${A1[i]:5}!"
-          fi
-          if ! sudo mount /dev/mapper/"${A1[i]:5}" "${B1[i]}"; then
-            mount_error "Failed to mount ${A1[i]}!"
-          fi
-        fi
-      else
-        if ! sudo mount "${A1[i]}" "${B1[i]}"; then
+          mount_error "/dev/mapper/${A1[i]:5} already exists!"
+        elif ! sudo cryptsetup open "${A1[i]}" "${A1[i]:5}"; then
+          mount_error "Failed to open /dev/mapper/${A1[i]:5}!"
+        elif ! sudo mount /dev/mapper/"${A1[i]:5}" "${B1[i]}"; then
           mount_error "Failed to mount ${A1[i]}!"
         fi
+      elif ! sudo mount "${A1[i]}" "${B1[i]}"; then
+        mount_error "Failed to mount ${A1[i]}!"
       fi
     fi
   done
