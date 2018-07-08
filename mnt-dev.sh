@@ -99,22 +99,6 @@ menu_loop () {
   done
 }
 
-prune_a1 () {
-  local TempA="${A1[(($OP - 1))]}"
-  local TempB="${B1[(($OP - 1))]}"
-  unset A1 B1
-  A1[0]="$TempA"
-  B1[0]="$TempB"
-}
-
-prune_a2 () {
-  local TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
-  local TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
-  unset A2 B2
-  A2[0]="$TempA"
-  B2[0]="$TempB"
-}
-
 mount_error () {
   printf '%s\n' "$1"
   sudo rmdir "${B1[i]}"
@@ -169,10 +153,18 @@ unmount_a2 () {
 
 menu_choice () {
   if [ "$OP" -le "${#A1[*]}" ]; then
-    prune_a1
+    local TempA="${A1[(($OP - 1))]}"
+    local TempB="${B1[(($OP - 1))]}"
+    unset A1 B1
+    A1[0]="$TempA"
+    B1[0]="$TempB"
     mount_a1 now
   elif [ "$OP" -gt "${#A1[*]}" ] && [ "$OP" -le "$((${#A1[*]} + ${#A2[*]}))" ]; then
-    prune_a2
+    local TempA="${A2[(($OP - "${#A1[*]}" - 1))]}"
+    local TempB="${B2[(($OP - "${#A1[*]}" - 1))]}"
+    unset A2 B2
+    A2[0]="$TempA"
+    B2[0]="$TempB"
     unmount_a2 now
   elif [ "${#A1[*]}" -gt "1" ] && [ "$OP" -eq "$((${#A1[*]} + ${#A2[*]} + 1))" ]; then
     mount_a1 now
