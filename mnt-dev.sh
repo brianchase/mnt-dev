@@ -211,7 +211,7 @@ chk_a2_arg () {
 }
 
 arrays_a () {
-  readarray -t A1 < <(lsblk -po NAME,FSTYPE | grep -vE '^/dev/sd[b-z]\s+$' | grep -oE '/dev/sd[b-z][1-9]|/dev/sd[b-z]')
+  readarray -t A1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* | awk '{if ($2) print $1;}')
   if [ "${#A1[*]}" -eq 0 ]; then
     printf '%s\n' "No connected devices!"
     exit 1
