@@ -65,40 +65,6 @@ chk_a2_arg () {
   fi
 }
 
-menu_loop () {
-  while true; do
-    N=0
-    printf '%s\n\n' "Please choose:"
-    if [ "${#A1[*]}" -ge 1 ]; then
-      for i in "${!A1[@]}"; do
-        printf '\t%s\n' "$((N += 1)). Mount ${A1[i]} at ${B1[i]}"
-      done
-    fi
-    if [ "${#A2[*]}" -ge 1 ]; then
-      for i in "${!A2[@]}"; do
-        printf '\t%s\n' "$((N += 1)). Unmount ${A2[i]} at ${B2[i]}"
-      done
-    fi
-    if [ "${#A1[*]}" -gt 1 ]; then
-      printf '\t%s\n' "$((N += 1)). Mount all listed devices"
-    fi
-    if [ "${#A2[*]}" -gt 1 ]; then
-      printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
-    fi
-    printf '\t%s\n' "$((N += 1)). Skip"
-    read -r OP
-    case $OP in
-      ''|*[!1-9]*) continue ;;
-    esac
-    if [ "$OP" -eq "$N" ]; then
-      return 1
-    elif [ "$OP" -gt "$N" ]; then
-      continue
-    fi
-    break
-  done
-}
-
 mount_error () {
   printf '%s\n' "$1"
   sudo rmdir "${B1[i]}"
@@ -151,7 +117,39 @@ unmount_a2 () {
   done
 }
 
-menu_choice () {
+mnt_menu () {
+  while true; do
+    local N=0
+    printf '%s\n\n' "Please choose:"
+    if [ "${#A1[*]}" -ge 1 ]; then
+      for i in "${!A1[@]}"; do
+        printf '\t%s\n' "$((N += 1)). Mount ${A1[i]} at ${B1[i]}"
+      done
+    fi
+    if [ "${#A2[*]}" -ge 1 ]; then
+      for i in "${!A2[@]}"; do
+        printf '\t%s\n' "$((N += 1)). Unmount ${A2[i]} at ${B2[i]}"
+      done
+    fi
+    if [ "${#A1[*]}" -gt 1 ]; then
+      printf '\t%s\n' "$((N += 1)). Mount all listed devices"
+    fi
+    if [ "${#A2[*]}" -gt 1 ]; then
+      printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
+    fi
+    printf '\t%s\n' "$((N += 1)). Skip"
+    local OP
+    read -r OP
+    case $OP in
+      ''|*[!1-9]*) continue ;;
+    esac
+    if [ "$OP" -eq "$N" ]; then
+      return 1
+    elif [ "$OP" -gt "$N" ]; then
+      continue
+    fi
+    break
+  done
   if [ "$OP" -le "${#A1[*]}" ]; then
     local TempA="${A1[(($OP - 1))]}"
     local TempB="${B1[(($OP - 1))]}"
@@ -187,8 +185,7 @@ chk_arrays () {
     mount_a1
   elif [ "${#A1[*]}" -eq 0 ] && [ "${#A2[*]}" -eq 1 ]; then
     unmount_a2
-  elif menu_loop; then
-    menu_choice
+  elif mnt_menu; then
     menu_return
   fi
 }
