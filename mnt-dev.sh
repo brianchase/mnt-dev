@@ -194,7 +194,7 @@ chk_arrays () {
 }
 
 dev_arrays () {
-  readarray -t A1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* | awk '{if ($2) print $1;}')
+  readarray -t A1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#A1[*]}" -eq 0 ]; then
     printf '%s\n' "No connected devices!"
     exit 1
