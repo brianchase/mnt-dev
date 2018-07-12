@@ -216,9 +216,17 @@ dev_arrays () {
   fi
 }
 
-dev_arrays
-case $1 in
-  mount) chk_a1_arg "$2" ;;
-  unmount|umount) chk_a2_arg "$2" ;;
-  *) chk_arrays ;;
-esac
+mnt_main () {
+  BN1="$(basename "${0#-}")"
+  BN2="$(basename "${BASH_SOURCE[0]}")"
+  if [ "$BN1" = "$BN2" ]; then
+    dev_arrays
+    case $1 in
+      mount) chk_a1_arg "$2" ;;
+      unmount|umount) chk_a2_arg "$2" ;;
+      *) chk_arrays ;;
+    esac
+  fi
+}
+
+mnt_main "$1" "$2"
