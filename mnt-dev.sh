@@ -71,16 +71,15 @@ mount_error () {
 }
 
 mount_dev () {
+  local MntDevArr1 FileSys i
   for i in "${!DevArr1[@]}"; do
     if [ "$1" != now ]; then
-      local MntDevArr1
       read -r -p "Mount ${DevArr1[i]} at ${MntArr1[i]}? [y/n] " MntDevArr1
     fi
     if [ "$MntDevArr1" = y ] || [ "$1" = now ]; then
       if [ ! -d "${MntArr1[i]}" ]; then
         sudo mkdir -p "${MntArr1[i]}"
       fi
-      local FileSys
       FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
       if [ "$FileSys" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
@@ -98,9 +97,9 @@ mount_dev () {
 }
 
 umount_dev () {
+  local UmntDevArr2 i
   for i in "${!DevArr2[@]}"; do
     if [ "$1" != now ]; then
-      local UmntDevArr2
       read -r -p "Unmount ${DevArr2[i]} at ${MntArr2[i]}? [y/n] " UmntDevArr2
     fi
     if [ "$UmntDevArr2" = y ] || [ "$1" = now ]; then
@@ -122,7 +121,7 @@ umount_dev () {
 
 mnt_menu () {
   while true; do
-    local N=0
+    local N=0 Opt i
     printf '%s\n\n' "Please choose:"
     if [ "${#DevArr1[*]}" -ge 1 ]; then
       for i in "${!DevArr1[@]}"; do
@@ -141,7 +140,6 @@ mnt_menu () {
       printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
     fi
     printf '\t%s\n' "$((N += 1)). Skip"
-    local Opt
     read -r Opt
     case $Opt in
       ''|*[!1-9]*) continue ;;
@@ -195,6 +193,7 @@ chk_arrays () {
 }
 
 dev_arrays () {
+  local i j
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     printf '%s\n' "No connected devices!"
