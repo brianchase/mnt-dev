@@ -32,42 +32,43 @@ directory in `/mnt` and, if the device is encrypted, uses
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to close the
 corresponding device in `/dev/mapper`.
 
-The script accepts two arguments:
+You may run the script without options and follow the prompts or
+run it with these options:
 
 ```
 $ mnt-dev.sh [mount|unmount|umount] [device|all]
 ```
 
-So, to mount a specific device, such as `/dev/sdb1`, you could run the
-script without arguments – and select it from the menu, if the script
-detects more than one – or you could run:
+The options `mount`, `unmount`, and `umount` (the latter two are
+synonymous) require the name of a device, such as `/dev/sdb1`, or
+`all`. For example, to mount `/dev/sdb1`:
 
 ```
 $ mnt-dev.sh mount /dev/sdb1
 ```
 
-To unmount it in this way, use `unmount` or `umount` with the device's
-name, as in:
+To unmount it in this way, use `unmount` or `umount`:
 
 ```
 $ mnt-dev.sh unmount /dev/sdb1
 ```
 
-The arguments `mount all` tell the script to mount all connected
+The options `mount all` tell the script to mount all connected
 devices:
 
 ```
 $ mnt-dev.sh mount all
 ```
 
-The arguments `unmount all` or `umount all` tell the script to unmount
-all connected devices.
+The options `unmount all` and `umount all` tell the script to unmount
+all connected devices:
 
-You can always save keystrokes by running the script without options,
-but they come in handy when you want to run it from other scripts.
+```
+$ mnt-dev.sh umount all
+```
 
 If you prefer to mount devices in a different directory, say,
-`/media`, simply change the value of `PNT` on line four:
+`/media`, simply change the value of `PNT` on line four of the script:
 
 ```
 PNT="mnt"
