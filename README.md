@@ -6,6 +6,8 @@ This Bash script mounts and unmounts removable devices, such as USB
 thumb drives. It opens and closes encrypted devices with
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
 
+## HOW IT WORKS
+
 If the script detects just one connected device (it looks at
 `/dev/sdb` through `/dev/sdz`), it checks whether the device is
 mounted. If it's mounted, the script asks to unmount it. If it's not
