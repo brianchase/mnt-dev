@@ -6,7 +6,7 @@ PNT="mnt"
 chk_mount_args () {
   if [ "$1" = all ]; then
     if [ "${#DevArr1[*]}" -eq 0 ]; then
-      printf '%s\n' "All connected devices are mounted!"
+      printf '%s\n' "All connected devices are mounted!" >&2
       exit 1
     else
       mount_dev
@@ -14,7 +14,7 @@ chk_mount_args () {
   else
     for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
-        printf '%s\n' "'$1' is mounted!"
+        printf '%s\n' "'$1' is mounted!" >&2
         exit 1
       fi
     done
@@ -28,7 +28,7 @@ chk_mount_args () {
       fi
     done
     if [ "${DevArr1[0]}" != "$1" ]; then
-      printf '%s\n' "No '$1' found!"
+      printf '%s\n' "No '$1' found!" >&2
       exit 1
     fi
   fi
@@ -37,7 +37,7 @@ chk_mount_args () {
 chk_umount_args () {
   if [ "$1" = all ]; then
     if [ "${#DevArr2[*]}" -eq 0 ]; then
-      printf '%s\n' "No connected devices are mounted!"
+      printf '%s\n' "No connected devices are mounted!" >&2
       exit 1
     else
       umount_dev
@@ -45,7 +45,7 @@ chk_umount_args () {
   else
     for i in "${DevArr1[@]}"; do
       if [ "$i" = "$1" ]; then
-        printf '%s\n' "'$1' is not mounted!"
+        printf '%s\n' "'$1' is not mounted!" >&2
         exit 1
       fi
     done
@@ -59,7 +59,7 @@ chk_umount_args () {
       fi
     done
     if [ "${DevArr2[0]}" != "$1" ]; then
-      printf '%s\n' "No '$1' found!"
+      printf '%s\n' "No '$1' found!" >&2
       exit 1
     fi
   fi
@@ -196,7 +196,7 @@ dev_arrays () {
   local i j
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
-    printf '%s\n' "No connected devices!"
+    printf '%s\n' "No connected devices!" >&2
     exit 1
   else
     for i in "${DevArr1[@]}"; do
