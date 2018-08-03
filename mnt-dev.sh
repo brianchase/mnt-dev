@@ -73,12 +73,12 @@ mount_error () {
 }
 
 mount_dev () {
-  local MntDevArr1 FileSys i
+  local MntDev FileSys i
   for i in "${!DevArr1[@]}"; do
     if [ "$1" != now ]; then
-      read -r -p "Mount ${DevArr1[i]} at ${MntArr1[i]}? [y/n] " MntDevArr1
+      read -r -p "Mount ${DevArr1[i]} at ${MntArr1[i]}? [y/n] " MntDev
     fi
-    if [ "$MntDevArr1" = y ] || [ "$1" = now ]; then
+    if [ "$MntDev" = y ] || [ "$1" = now ]; then
       if [ ! -d "${MntArr1[i]}" ]; then
         sudo mkdir -p "${MntArr1[i]}"
       fi
@@ -99,12 +99,12 @@ mount_dev () {
 }
 
 umount_dev () {
-  local UmntDevArr2 i
+  local UmntDev i
   for i in "${!DevArr2[@]}"; do
     if [ "$1" != now ]; then
-      read -r -p "Unmount ${DevArr2[i]} at ${MntArr2[i]}? [y/n] " UmntDevArr2
+      read -r -p "Unmount ${DevArr2[i]} at ${MntArr2[i]}? [y/n] " UmntDev
     fi
-    if [ "$UmntDevArr2" = y ] || [ "$1" = now ]; then
+    if [ "$UmntDev" = y ] || [ "$1" = now ]; then
       if ! sudo umount "${MntArr2[i]}"; then
         printf '%s\n' "Failed to unmount ${DevArr2[i]}!"
       else
