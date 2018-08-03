@@ -66,7 +66,7 @@ chk_umount_args () {
 }
 
 mount_error () {
-  printf '%s\n' "$1"
+  printf '%s\n' "$1" >&2
   sudo rmdir "${MntArr1[i]}"
 }
 
