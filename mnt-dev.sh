@@ -21,6 +21,7 @@ chk_mount_args () {
     done
     for j in "${DevArr1[@]}"; do
       if [ "$j" = "$1" ]; then
+# Make the selected device DevArr1[0] and its mount point MntArr1[0].
         unset DevArr1 MntArr1
         DevArr1[0]="$1"
         MntArr1[0]="/$PNT/${DevArr1[0]:5}"
@@ -53,6 +54,7 @@ chk_umount_args () {
     done
     for j in "${DevArr2[@]}"; do
       if [ "$j" = "$1" ]; then
+# Make the selected device DevArr2[0] and its mount point MntArr2[0].
         unset DevArr2 MntArr2
         DevArr2[0]="$1"
         MntArr2[0]="$(lsblk -no MOUNTPOINT "${DevArr2[0]}" | tail -1)"
@@ -126,19 +128,23 @@ mnt_menu () {
     local N=0 Opt i
     printf '%s\n\n' "Please choose:"
     if [ "${#DevArr1[*]}" -ge 1 ]; then
+# List all unmounted devices for mounting.
       for i in "${!DevArr1[@]}"; do
         printf '\t%s\n' "$((N += 1)). Mount ${DevArr1[i]} at ${MntArr1[i]}"
       done
     fi
     if [ "${#DevArr2[*]}" -ge 1 ]; then
+# List all mounted devices for unmounting.
       for i in "${!DevArr2[@]}"; do
         printf '\t%s\n' "$((N += 1)). Unmount ${DevArr2[i]} at ${MntArr2[i]}"
       done
     fi
     if [ "${#DevArr1[*]}" -gt 1 ]; then
+# If more than one device is unmounted, offer to mount them all.
       printf '\t%s\n' "$((N += 1)). Mount all listed devices"
     fi
     if [ "${#DevArr2[*]}" -gt 1 ]; then
+# If more than one device is mounted, offer to unmount them all.
       printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
     fi
     printf '\t%s\n' "$((N += 1)). Skip"
@@ -154,6 +160,7 @@ mnt_menu () {
     break
   done
   if [ "$Opt" -le "${#DevArr1[*]}" ]; then
+# Make the selected device DevArr1[0] and its mount point MntArr1[0].
     local TempA="${DevArr1[(($Opt - 1))]}"
     local TempB="${MntArr1[(($Opt - 1))]}"
     unset DevArr1 MntArr1
@@ -161,6 +168,7 @@ mnt_menu () {
     MntArr1[0]="$TempB"
     mount_dev now
   elif [ "$Opt" -gt "${#DevArr1[*]}" ] && [ "$Opt" -le "$((${#DevArr1[*]} + ${#DevArr2[*]}))" ]; then
+# Make the selected device DevArr2[0] and its mount point MntArr2[0].
     local TempA="${DevArr2[(($Opt - "${#DevArr1[*]}" - 1))]}"
     local TempB="${MntArr2[(($Opt - "${#DevArr1[*]}" - 1))]}"
     unset DevArr2 MntArr2
@@ -168,8 +176,10 @@ mnt_menu () {
     MntArr2[0]="$TempB"
     umount_dev now
   elif [ "${#DevArr1[*]}" -gt "1" ] && [ "$Opt" -eq "$((${#DevArr1[*]} + ${#DevArr2[*]} + 1))" ]; then
+# Mount all devices in DevArr1 at their mount points in MntArr1.
     mount_dev now
   else
+# Unmount all devices in DevArr2 from their mount points in MntArr2.
     umount_dev now
   fi
 }
@@ -186,8 +196,10 @@ menu_return () {
 
 chk_arrays () {
   if [ "${#DevArr1[*]}" -eq 1 ] && [ "${#DevArr2[*]}" -eq 0 ]; then
+# If the only connected device is unmounted, offer to mount it.
     mount_dev
   elif [ "${#DevArr1[*]}" -eq 0 ] && [ "${#DevArr2[*]}" -eq 1 ]; then
+# If the only connected device is mounted, offer to unmount it.
     umount_dev
   elif mnt_menu; then
     menu_return
@@ -198,11 +210,13 @@ chk_arrays () {
 
 dev_arrays () {
   local i j
+# Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     printf '%s\n' "No connected devices!" >&2
     exit 1
   else
+# Mounted devices in DevArr1 go in DevArr2. Remove them from DevArr1.
     for i in "${DevArr1[@]}"; do
       if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
         DevArr2+=("$i")
@@ -214,9 +228,11 @@ dev_arrays () {
         done
       fi
     done
+# Make MntArr1 an array of mount points for devices in DevArr1.
     for i in "${!DevArr1[@]}"; do
       MntArr1+=("/$PNT/${DevArr1[i]:5}")
     done
+# Make MntArr2 an array of mount points for devices in DevArr2.
     for i in "${!DevArr2[@]}"; do
       MntArr2+=("$(lsblk -no MOUNTPOINT "${DevArr2[i]}" | tail -1)")
     done
@@ -224,6 +240,7 @@ dev_arrays () {
 }
 
 mnt_main () {
+# Allow sourcing this script without runnning any other functions.
   local BN1 BN2
   BN1="$(basename "${0#-}")"
   BN2="$(basename "${BASH_SOURCE[0]}")"
