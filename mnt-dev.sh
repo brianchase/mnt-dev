@@ -12,14 +12,15 @@ chk_mount_args () {
       mount_dev
     fi
   else
+    local i j
     for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
         printf '%s\n' "'$1' is mounted!" >&2
         exit 1
       fi
     done
-    for i in "${DevArr1[@]}"; do
-      if [ "$i" = "$1" ]; then
+    for j in "${DevArr1[@]}"; do
+      if [ "$j" = "$1" ]; then
         unset DevArr1 MntArr1
         DevArr1[0]="$1"
         MntArr1[0]="/$PNT/${DevArr1[0]:5}"
@@ -43,14 +44,15 @@ chk_umount_args () {
       umount_dev
     fi
   else
+    local i j
     for i in "${DevArr1[@]}"; do
       if [ "$i" = "$1" ]; then
         printf '%s\n' "'$1' is not mounted!" >&2
         exit 1
       fi
     done
-    for i in "${DevArr2[@]}"; do
-      if [ "$i" = "$1" ]; then
+    for j in "${DevArr2[@]}"; do
+      if [ "$j" = "$1" ]; then
         unset DevArr2 MntArr2
         DevArr2[0]="$1"
         MntArr2[0]="$(lsblk -no MOUNTPOINT "${DevArr2[0]}" | tail -1)"
