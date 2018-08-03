@@ -191,6 +191,8 @@ chk_arrays () {
     umount_dev
   elif mnt_menu; then
     menu_return
+  else
+    return 1
   fi
 }
 
