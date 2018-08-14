@@ -81,9 +81,7 @@ mount_dev () {
       read -r -p "Mount ${DevArr1[i]} at ${MntArr1[i]}? [y/n] " MntDev
     fi
     if [ "$MntDev" = y ] || [ "$1" = now ]; then
-      if [ ! -d "${MntArr1[i]}" ]; then
-        sudo mkdir -p "${MntArr1[i]}"
-      fi
+      [ ! -d "${MntArr1[i]}" ] && sudo mkdir -p "${MntArr1[i]}"
       FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
       if [ "$FileSys" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
@@ -115,9 +113,7 @@ umount_dev () {
             printf '%s\n' "Failed to close /dev/mapper/${DevArr2[i]:5}!"
           fi
         fi
-        if [ -d "${MntArr2[i]}" ]; then
-          sudo rmdir "${MntArr2[i]}"
-        fi
+        [ -d "${MntArr2[i]}" ] && sudo rmdir "${MntArr2[i]}"
       fi
     fi
   done
@@ -139,24 +135,17 @@ mnt_menu () {
         printf '\t%s\n' "$((N += 1)). Unmount ${DevArr2[i]} at ${MntArr2[i]}"
       done
     fi
-    if [ "${#DevArr1[*]}" -gt 1 ]; then
 # If more than one device is unmounted, offer to mount them all.
-      printf '\t%s\n' "$((N += 1)). Mount all listed devices"
-    fi
-    if [ "${#DevArr2[*]}" -gt 1 ]; then
+    [ "${#DevArr1[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Mount all listed devices"
 # If more than one device is mounted, offer to unmount them all.
-      printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
-    fi
+    [ "${#DevArr2[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
     printf '\t%s\n' "$((N += 1)). Skip"
     read -r Opt
     case $Opt in
       ''|*[!1-9]*) continue ;;
     esac
-    if [ "$Opt" -eq "$N" ]; then
-      return 1
-    elif [ "$Opt" -gt "$N" ]; then
-      continue
-    fi
+    [ "$Opt" -eq "$N" ] && return 1
+    [ "$Opt" -gt "$N" ] && continue
     break
   done
   if [ "$Opt" -le "${#DevArr1[*]}" ]; then
