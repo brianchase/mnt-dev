@@ -3,20 +3,25 @@
 # The script mount devices in /mnt:
 PNT="mnt"
 
+chk_args_error () {
+  printf '%s\n' "$1" >&2
+  exit 1
+}
+
 chk_mount_args () {
   if [ "$1" = all ]; then
     if [ "${#DevArr1[*]}" -eq 0 ]; then
       printf '%s\n' "All connected devices are mounted!" >&2
       exit 1
     else
-      mount_dev
+      mount_dev "$2"
     fi
   else
     local i j
     for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
-        printf '%s\n' "'$1' is mounted!" >&2
-        exit 1
+        local TempA="$(lsblk -no MOUNTPOINT "$i" | tail -1)"
+        chk_args_error "'$1' is mounted at $TempA!"
       fi
     done
     for j in "${DevArr1[@]}"; do
@@ -25,14 +30,11 @@ chk_mount_args () {
         unset DevArr1 MntArr1
         DevArr1[0]="$1"
         MntArr1[0]="/$PNT/${DevArr1[0]:5}"
-        mount_dev
+        mount_dev "$2"
         break;
       fi
     done
-    if [ "${DevArr1[0]}" != "$1" ]; then
-      printf '%s\n' "No '$1' found!" >&2
-      exit 1
-    fi
+    [ "${DevArr1[0]}" != "$1" ] && chk_args_error "No '$1' found!"
   fi
 }
 
@@ -42,14 +44,13 @@ chk_umount_args () {
       printf '%s\n' "No connected devices are mounted!" >&2
       exit 1
     else
-      umount_dev
+      umount_dev "$2"
     fi
   else
     local i j
     for i in "${DevArr1[@]}"; do
       if [ "$i" = "$1" ]; then
-        printf '%s\n' "'$1' is not mounted!" >&2
-        exit 1
+        chk_args_error "'$1' is not mounted!"
       fi
     done
     for j in "${DevArr2[@]}"; do
@@ -58,14 +59,11 @@ chk_umount_args () {
         unset DevArr2 MntArr2
         DevArr2[0]="$1"
         MntArr2[0]="$(lsblk -no MOUNTPOINT "${DevArr2[0]}" | tail -1)"
-        umount_dev
+        umount_dev "$2"
         break;
       fi
     done
-    if [ "${DevArr2[0]}" != "$1" ]; then
-      printf '%s\n' "No '$1' found!" >&2
-      exit 1
-    fi
+    [ "${DevArr2[0]}" != "$1" ] && chk_args_error "No '$1' found!"
   fi
 }
 
@@ -236,11 +234,11 @@ mnt_main () {
   if [ "$BN1" = "$BN2" ]; then
     dev_arrays
     case $1 in
-      mount) chk_mount_args "$2" ;;
-      unmount|umount) chk_umount_args "$2" ;;
+      mount) chk_mount_args "$2" "$3" ;;
+      unmount|umount) chk_umount_args "$2" "$3" ;;
       *) chk_arrays ;;
     esac
   fi
 }
 
-mnt_main "$1" "$2"
+mnt_main "$1" "$2" "$3"
