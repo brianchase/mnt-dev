@@ -36,7 +36,7 @@ You may run the script without options and follow the prompts or
 run it with these options:
 
 ```
-$ mnt-dev.sh [mount|unmount|umount] [device|all]
+$ mnt-dev.sh [mount|unmount|umount] [device|all] [now]
 ```
 
 The options `mount`, `unmount`, and `umount` (the latter two are
@@ -66,6 +66,10 @@ connected devices that are mounted:
 ```
 $ mnt-dev.sh umount all
 ```
+
+Adding `now` to the previous commands bypasses requests for
+confirmation. Unless it encounters an error, the script will silently
+mount or unmount the relevant devices.
 
 ## Customizing
 
