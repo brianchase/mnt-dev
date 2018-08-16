@@ -3,16 +3,10 @@
 # The script mount devices in /mnt:
 PNT="mnt"
 
-chk_args_error () {
-  printf '%s\n' "$1" >&2
-  exit 1
-}
-
 chk_mount_args () {
   if [ "$1" = all ]; then
     if [ "${#DevArr1[*]}" -eq 0 ]; then
-      printf '%s\n' "All connected devices are mounted!" >&2
-      exit 1
+      mnt_error "All connected devices are mounted!"
     else
       mount_dev "$2"
     fi
@@ -21,7 +15,7 @@ chk_mount_args () {
     for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
         local TempA="$(lsblk -no MOUNTPOINT "$i" | tail -1)"
-        chk_args_error "'$1' is mounted at $TempA!"
+        mnt_error "'$1' is mounted at $TempA!"
       fi
     done
     for j in "${DevArr1[@]}"; do
@@ -34,15 +28,14 @@ chk_mount_args () {
         break;
       fi
     done
-    [ "${DevArr1[0]}" != "$1" ] && chk_args_error "No '$1' found!"
+    [ "${DevArr1[0]}" != "$1" ] && mnt_error "No '$1' found!"
   fi
 }
 
 chk_umount_args () {
   if [ "$1" = all ]; then
     if [ "${#DevArr2[*]}" -eq 0 ]; then
-      printf '%s\n' "No connected devices are mounted!" >&2
-      exit 1
+      mnt_error "No connected devices are mounted!"
     else
       umount_dev "$2"
     fi
@@ -50,7 +43,7 @@ chk_umount_args () {
     local i j
     for i in "${DevArr1[@]}"; do
       if [ "$i" = "$1" ]; then
-        chk_args_error "'$1' is not mounted!"
+        mnt_error "'$1' is not mounted!"
       fi
     done
     for j in "${DevArr2[@]}"; do
@@ -63,13 +56,8 @@ chk_umount_args () {
         break;
       fi
     done
-    [ "${DevArr2[0]}" != "$1" ] && chk_args_error "No '$1' found!"
+    [ "${DevArr2[0]}" != "$1" ] && mnt_error "No '$1' found!"
   fi
-}
-
-mount_error () {
-  printf '%s\n' "$1" >&2
-  sudo rmdir "${MntArr1[i]}"
 }
 
 mount_dev () {
@@ -83,14 +71,14 @@ mount_dev () {
       FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
       if [ "$FileSys" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
-          mount_error "/dev/mapper/${DevArr1[i]:5} already exists!"
+          mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" mntpnt
         elif ! sudo cryptsetup open "${DevArr1[i]}" "${DevArr1[i]:5}"; then
-          mount_error "Failed to open /dev/mapper/${DevArr1[i]:5}!"
+          mnt_error "Failed to open /dev/mapper/${DevArr1[i]:5}!" mntpnt
         elif ! sudo mount /dev/mapper/"${DevArr1[i]:5}" "${MntArr1[i]}"; then
-          mount_error "Failed to mount ${DevArr1[i]}!"
+          mnt_error "Failed to mount ${DevArr1[i]}!" mntpnt
         fi
       elif ! sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
-        mount_error "Failed to mount ${DevArr1[i]}!"
+        mnt_error "Failed to mount ${DevArr1[i]}!" mntpnt
       fi
     fi
   done
@@ -195,13 +183,19 @@ chk_arrays () {
   fi
 }
 
+mnt_error () {
+  printf '%s\n' "$1" >&2
+  [ "$2" = mntpnt ] || exit 1
+  sudo rmdir "${MntArr1[i]}"
+  return 1
+}
+
 dev_arrays () {
   local i j
 # Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
-    printf '%s\n' "No connected devices!" >&2
-    exit 1
+    mnt_error "No connected devices!"
   else
 # Mounted devices in DevArr1 go in DevArr2. Remove them from DevArr1.
     for i in "${DevArr1[@]}"; do
