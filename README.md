@@ -74,7 +74,7 @@ mount or unmount the relevant devices.
 ## Customizing
 
 If you prefer a different mount point, say, `/media`, simply change
-the value of `PNT` on line four of the script:
+the value of `PNT` on line six of the script:
 
 ```
 PNT="mnt"

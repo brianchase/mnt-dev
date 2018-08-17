@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# From: https://github.com/brianchase/mnt-dev
+
 # The script mount devices in /mnt:
 PNT="mnt"
 
