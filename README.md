@@ -93,11 +93,6 @@ readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk
 Change `/dev/sd[b-z]*` as necessary – for example, to `/dev/sd[c-z]*`
 to treat `/dev/sdc` as the first possible connected device.
 
-## Portability
-
-Since the script uses arrays, it's not strictly
-[POSIX](https://en.wikipedia.org/wiki/POSIX)-compliant.
-
 ## License
 
 This project is in the public domain under [The
