@@ -69,7 +69,9 @@ mount_dev () {
       read -r -p "Mount ${DevArr1[i]} at ${MntArr1[i]}? [y/n] " MntDev
     fi
     if [ "$MntDev" = y ] || [ "$1" = now ]; then
-      [ ! -d "${MntArr1[i]}" ] && sudo mkdir -p "${MntArr1[i]}"
+      if [ ! -d "${MntArr1[i]}" ]; then
+        sudo mkdir -p "${MntArr1[i]}" || mnt_error "Failed to make ${MntArr1[i]}!"
+      fi
       FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
       if [ "$FileSys" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
@@ -94,11 +96,11 @@ umount_dev () {
     fi
     if [ "$UmntDev" = y ] || [ "$1" = now ]; then
       if ! sudo umount "${MntArr2[i]}"; then
-        printf '%s\n' "Failed to unmount ${DevArr2[i]}!"
+        mnt_error "Failed to unmount ${DevArr2[i]}!" umntpnt
       else
         if [ -L "/dev/mapper/${DevArr2[i]:5}" ]; then
           if ! sudo cryptsetup close "${DevArr2[i]:5}"; then
-            printf '%s\n' "Failed to close /dev/mapper/${DevArr2[i]:5}!"
+            mnt_error "Failed to close /dev/mapper/${DevArr2[i]:5}!" umntpnt
           fi
         fi
         [ -d "${MntArr2[i]}" ] && sudo rmdir "${MntArr2[i]}"
@@ -187,6 +189,7 @@ chk_arrays () {
 
 mnt_error () {
   printf '%s\n' "$1" >&2
+  [ "$2" = umntpnt ] && return 1
   [ "$2" = mntpnt ] || exit 1
   sudo rmdir "${MntArr1[i]}"
   return 1
