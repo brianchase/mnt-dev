@@ -70,19 +70,19 @@ mount_dev () {
     fi
     if [ "$MntDev" = y ] || [ "$1" = now ]; then
       if [ ! -d "${MntArr1[i]}" ]; then
-        sudo mkdir -p "${MntArr1[i]}" || mnt_error "Failed to make ${MntArr1[i]}!"
+        sudo mkdir -p "${MntArr1[i]}" || continue
       fi
       FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
       if [ "$FileSys" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
-          mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" mntpnt
+          mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" noexit rmpnt
         elif ! sudo cryptsetup open "${DevArr1[i]}" "${DevArr1[i]:5}"; then
-          mnt_error "Failed to open /dev/mapper/${DevArr1[i]:5}!" mntpnt
+          mnt_error "Failed to open /dev/mapper/${DevArr1[i]:5}!" noexit rmpnt
         elif ! sudo mount /dev/mapper/"${DevArr1[i]:5}" "${MntArr1[i]}"; then
-          mnt_error "Failed to mount ${DevArr1[i]}!" mntpnt
+          mnt_error "Failed to mount ${DevArr1[i]}!" noexit rmpnt
         fi
       elif ! sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
-        mnt_error "Failed to mount ${DevArr1[i]}!" mntpnt
+        mnt_error "Failed to mount ${DevArr1[i]}!" noexit rmpnt
       fi
     fi
   done
@@ -96,11 +96,11 @@ umount_dev () {
     fi
     if [ "$UmntDev" = y ] || [ "$1" = now ]; then
       if ! sudo umount "${MntArr2[i]}"; then
-        mnt_error "Failed to unmount ${DevArr2[i]}!" umntpnt
+        mnt_error "Failed to unmount ${DevArr2[i]}!" noexit
       else
         if [ -L "/dev/mapper/${DevArr2[i]:5}" ]; then
           if ! sudo cryptsetup close "${DevArr2[i]:5}"; then
-            mnt_error "Failed to close /dev/mapper/${DevArr2[i]:5}!" umntpnt
+            mnt_error "Failed to close /dev/mapper/${DevArr2[i]:5}!" noexit
           fi
         fi
         [ -d "${MntArr2[i]}" ] && sudo rmdir "${MntArr2[i]}"
@@ -189,10 +189,10 @@ chk_arrays () {
 
 mnt_error () {
   printf '%s\n' "$1" >&2
-  [ "$2" = umntpnt ] && return 1
-  [ "$2" = mntpnt ] || exit 1
-  sudo rmdir "${MntArr1[i]}"
-  return 1
+  [ "$2" = noexit ] || exit 1
+  if [ "$3" = rmpnt ] && [ -d "${MntArr1[i]}" ]; then
+    sudo rmdir "${MntArr1[i]}"
+  fi
 }
 
 dev_arrays () {
