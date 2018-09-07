@@ -16,7 +16,8 @@ chk_mount_args () {
     local i j
     for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
-        local TempA="$(lsblk -no MOUNTPOINT "$i" | tail -1)"
+        local TempA
+        TempA="$(lsblk -no MOUNTPOINT "$i" | tail -1)"
         mnt_error "'$1' is mounted at $TempA!"
       fi
     done
