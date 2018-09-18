@@ -6,51 +6,48 @@
 PNT="mnt"
 
 chk_mount_args () {
+  local TempA i
   if [ "$1" = all ]; then
     if [ "${#DevArr1[*]}" -eq 0 ]; then
       mnt_error "All connected devices are mounted!"
     else
       mount_dev "$2"
     fi
-  else
-    local i j
-    for i in "${DevArr2[@]}"; do
+  elif [ -b "$1" ]; then
+    TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
+    if [ "$TempA" ]; then
+      mnt_error "'$1' is mounted on $TempA!"
+    fi
+    for i in "${DevArr1[@]}"; do
       if [ "$i" = "$1" ]; then
-        local TempA
-        TempA="$(lsblk -no MOUNTPOINT "$i" | tail -1)"
-        mnt_error "'$1' is mounted at $TempA!"
-      fi
-    done
-    for j in "${DevArr1[@]}"; do
-      if [ "$j" = "$1" ]; then
 # Make the selected device DevArr1[0] and its mount point MntArr1[0].
         unset DevArr1 MntArr1
         DevArr1[0]="$1"
-        MntArr1[0]="/$PNT/${DevArr1[0]:5}"
+        chk_mount_points
         mount_dev "$2"
         break;
       fi
     done
-    [ "${DevArr1[0]}" != "$1" ] && mnt_error "No '$1' found!"
+  else
+    mnt_error "'$1' is not a block device!"
   fi
 }
 
 chk_umount_args () {
+  local TempA i
   if [ "$1" = all ]; then
     if [ "${#DevArr2[*]}" -eq 0 ]; then
       mnt_error "No connected devices are mounted!"
     else
       umount_dev "$2"
     fi
-  else
-    local i j
-    for i in "${DevArr1[@]}"; do
+  elif [ -b "$1" ]; then
+    TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
+    if [ -z "$TempA" ]; then
+      mnt_error "'$1' is not mounted!"
+    fi
+    for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
-        mnt_error "'$1' is not mounted!"
-      fi
-    done
-    for j in "${DevArr2[@]}"; do
-      if [ "$j" = "$1" ]; then
 # Make the selected device DevArr2[0] and its mount point MntArr2[0].
         unset DevArr2 MntArr2
         DevArr2[0]="$1"
@@ -59,7 +56,8 @@ chk_umount_args () {
         break;
       fi
     done
-    [ "${DevArr2[0]}" != "$1" ] && mnt_error "No '$1' found!"
+  else
+    mnt_error "'$1' is not a block device!"
   fi
 }
 
@@ -67,44 +65,53 @@ mount_dev () {
   local MntDev FileSys i
   for i in "${!DevArr1[@]}"; do
     if [ "$1" != now ]; then
-      read -r -p "Mount ${DevArr1[i]} at ${MntArr1[i]}? [y/n] " MntDev
+      read -r -p "Mount ${DevArr1[i]} on ${MntArr1[i]}? [y/n] " MntDev
     fi
     if [ "$MntDev" = y ] || [ "$1" = now ]; then
       if [ ! -d "${MntArr1[i]}" ]; then
-        sudo mkdir -p "${MntArr1[i]}" || continue
+        mnt_sudo mkdir -p "${MntArr1[i]}" || continue
       fi
       FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
       if [ "$FileSys" = crypto_LUKS ]; then
         if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
-          mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" noexit rmpnt
-        elif ! sudo cryptsetup open "${DevArr1[i]}" "${DevArr1[i]:5}"; then
-          mnt_error "Failed to open /dev/mapper/${DevArr1[i]:5}!" noexit rmpnt
-        elif ! sudo mount /dev/mapper/"${DevArr1[i]:5}" "${MntArr1[i]}"; then
-          mnt_error "Failed to mount ${DevArr1[i]}!" noexit rmpnt
+          mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" noexit
+          mnt_sudo rmdir "${MntArr1[i]}"
+        elif ! mnt_sudo cryptsetup open "${DevArr1[i]}" "${DevArr1[i]:5}"; then
+          mnt_error "Failed to open /dev/mapper/${DevArr1[i]:5}!" noexit
+          mnt_sudo rmdir "${MntArr1[i]}"
+        elif ! mnt_sudo mount /dev/mapper/"${DevArr1[i]:5}" "${MntArr1[i]}"; then
+          mnt_error "Failed to mount ${DevArr1[i]}!" noexit
+          mnt_sudo rmdir "${MntArr1[i]}"
+          mnt_sudo cryptsetup close /dev/mapper/"${DevArr1[i]:5}"
         fi
-      elif ! sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
-        mnt_error "Failed to mount ${DevArr1[i]}!" noexit rmpnt
+      elif ! mnt_sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
+        mnt_error "Failed to mount ${DevArr1[i]}!" noexit
+        mnt_sudo rmdir "${MntArr1[i]}"
       fi
     fi
   done
+}
+
+mnt_sudo () {
+  if [ "$(id -u)" -eq 0 ]; then
+    "$@"
+  else
+    sudo "$@"
+  fi
 }
 
 umount_dev () {
   local UmntDev i
   for i in "${!DevArr2[@]}"; do
     if [ "$1" != now ]; then
-      read -r -p "Unmount ${DevArr2[i]} at ${MntArr2[i]}? [y/n] " UmntDev
+      read -r -p "Unmount ${DevArr2[i]} on ${MntArr2[i]}? [y/n] " UmntDev
     fi
     if [ "$UmntDev" = y ] || [ "$1" = now ]; then
-      if ! sudo umount "${MntArr2[i]}"; then
+      if ! mnt_sudo umount "${MntArr2[i]}"; then
         mnt_error "Failed to unmount ${DevArr2[i]}!" noexit
       else
-        if [ -L "/dev/mapper/${DevArr2[i]:5}" ]; then
-          if ! sudo cryptsetup close "${DevArr2[i]:5}"; then
-            mnt_error "Failed to close /dev/mapper/${DevArr2[i]:5}!" noexit
-          fi
-        fi
-        [ -d "${MntArr2[i]}" ] && sudo rmdir "${MntArr2[i]}"
+        mnt_sudo rmdir "${MntArr2[i]}"
+        [ -L "${DevArr2[i]}" ] && mnt_sudo cryptsetup close "${DevArr2[i]}"
       fi
     fi
   done
@@ -117,19 +124,19 @@ mnt_menu () {
     if [ "${#DevArr1[*]}" -ge 1 ]; then
 # List all unmounted devices for mounting.
       for i in "${!DevArr1[@]}"; do
-        printf '\t%s\n' "$((N += 1)). Mount ${DevArr1[i]} at ${MntArr1[i]}"
+        printf '\t%s\n' "$((N += 1)). Mount ${DevArr1[i]} on ${MntArr1[i]}"
       done
     fi
     if [ "${#DevArr2[*]}" -ge 1 ]; then
 # List all mounted devices for unmounting.
       for i in "${!DevArr2[@]}"; do
-        printf '\t%s\n' "$((N += 1)). Unmount ${DevArr2[i]} at ${MntArr2[i]}"
+        printf '\t%s\n' "$((N += 1)). Unmount ${DevArr2[i]} on ${MntArr2[i]}"
       done
     fi
 # If more than one device is unmounted, offer to mount them all.
-    [ "${#DevArr1[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Mount all listed devices"
+    [ "${#DevArr1[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Mount all unmounted devices"
 # If more than one device is mounted, offer to unmount them all.
-    [ "${#DevArr2[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Unmount all listed devices"
+    [ "${#DevArr2[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Unmount all mounted devices"
     printf '\t%s\n' "$((N += 1)). Skip"
     read -r Opt
     case $Opt in
@@ -156,7 +163,7 @@ mnt_menu () {
     MntArr2[0]="$TempB"
     umount_dev now
   elif [ "${#DevArr1[*]}" -gt "1" ] && [ "$Opt" -eq "$((${#DevArr1[*]} + ${#DevArr2[*]} + 1))" ]; then
-# Mount all devices in DevArr1 at their mount points in MntArr1.
+# Mount all devices in DevArr1 on their mount points in MntArr1.
     mount_dev now
   else
 # Unmount all devices in DevArr2 from their mount points in MntArr2.
@@ -191,9 +198,21 @@ chk_arrays () {
 mnt_error () {
   printf '%s\n' "$1" >&2
   [ "$2" = noexit ] || exit 1
-  if [ "$3" = rmpnt ] && [ -d "${MntArr1[i]}" ]; then
-    sudo rmdir "${MntArr1[i]}"
-  fi
+}
+
+chk_mount_points () {
+# Ensure that no device in MntArr1 is a mount point.
+  for i in "${!DevArr1[@]}"; do
+    local NewPnt="/$PNT/${DevArr1[i]:5}" N=1
+    while true; do
+      if mountpoint -q "$NewPnt"; then
+        NewPnt="/$PNT/${DevArr1[i]:5}-$((N += 1))"
+      else
+        MntArr1+=("$NewPnt")
+        break
+      fi
+    done
+  done
 }
 
 dev_arrays () {
@@ -203,10 +222,9 @@ dev_arrays () {
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     mnt_error "No connected devices!"
   else
-# Mounted devices in DevArr1 go in DevArr2. Remove them from DevArr1.
+# Remove mounted devices from DevArr1
     for i in "${DevArr1[@]}"; do
       if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
-        DevArr2+=("$i")
         for j in "${!DevArr1[@]}"; do
           if [ "${DevArr1[$j]}" = "$i" ]; then
             unset "DevArr1[$j]"
@@ -216,13 +234,12 @@ dev_arrays () {
       fi
     done
 # Make MntArr1 an array of mount points for devices in DevArr1.
-    for i in "${!DevArr1[@]}"; do
-      MntArr1+=("/$PNT/${DevArr1[i]:5}")
-    done
+    chk_mount_points
+# Make DevArr2 an array of mounted devices, starting with /dev/sdb and
+# giving multiple entries for devices with multiple mount points.
+    readarray -t DevArr2 < <(grep -o '^/dev[\/]*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts)
 # Make MntArr2 an array of mount points for devices in DevArr2.
-    for i in "${!DevArr2[@]}"; do
-      MntArr2+=("$(lsblk -no MOUNTPOINT "${DevArr2[i]}" | tail -1)")
-    done
+    readarray -t MntArr2 < <(grep '^/dev[\/]*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts | awk '{print $2}')
   fi
 }
 
