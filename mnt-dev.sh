@@ -197,15 +197,16 @@ mnt_error () {
 }
 
 dev_arrays () {
-  local i j k
+  local i j
 # Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     mnt_error "No connected devices!"
   else
-# Remove mounted devices from DevArr1
+# Mounted devices in DevArr1 go in DevArr2. Remove them from DevArr1.
     for i in "${DevArr1[@]}"; do
       if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
+        DevArr2+=("$i")
         for j in "${!DevArr1[@]}"; do
           if [ "${DevArr1[$j]}" = "$i" ]; then
             unset "DevArr1[$j]"
@@ -215,13 +216,13 @@ dev_arrays () {
       fi
     done
 # Make MntArr1 an array of mount points for devices in DevArr1.
-    for k in "${!DevArr1[@]}"; do
-      MntArr1+=("/$PNT/${DevArr1[k]:5}")
+    for i in "${!DevArr1[@]}"; do
+      MntArr1+=("/$PNT/${DevArr1[i]:5}")
     done
-# Make DevArr2 an array of mounted devices.
-    readarray -t DevArr2 < <(grep '/dev/sd[b-z]' /proc/mounts | awk '{print $1}')
 # Make MntArr2 an array of mount points for devices in DevArr2.
-    readarray -t MntArr2 < <(grep '/dev/sd[b-z]' /proc/mounts | awk '{print $2}')
+    for i in "${!DevArr2[@]}"; do
+      MntArr2+=("$(lsblk -no MOUNTPOINT "${DevArr2[i]}" | tail -1)")
+    done
   fi
 }
 
