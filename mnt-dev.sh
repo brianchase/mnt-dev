@@ -202,8 +202,9 @@ mnt_error () {
 
 chk_mount_points () {
 # Ensure that no device in MntArr1 is a mount point.
+  local N=1 i
   for i in "${!DevArr1[@]}"; do
-    local NewPnt="/$PNT/${DevArr1[i]:5}" N=1
+    local NewPnt="/$PNT/${DevArr1[i]:5}"
     while true; do
       if mountpoint -q "$NewPnt"; then
         NewPnt="/$PNT/${DevArr1[i]:5}-$((N += 1))"
