@@ -73,7 +73,7 @@ mount_dev () {
           mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" noexit
           mnt_sudo rmdir "${MntArr1[i]}"
         elif ! mnt_sudo cryptsetup open "${DevArr1[i]}" "${DevArr1[i]:5}"; then
-          mnt_error "Failed to open /dev/mapper/${DevArr1[i]:5}!" noexit
+          mnt_error "Failed to open ${DevArr1[i]}!" noexit
           mnt_sudo rmdir "${MntArr1[i]}"
         elif ! mnt_sudo mount /dev/mapper/"${DevArr1[i]:5}" "${MntArr1[i]}"; then
           mnt_error "Failed to mount ${DevArr1[i]}!" noexit
