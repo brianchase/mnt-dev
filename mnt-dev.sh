@@ -15,9 +15,7 @@ chk_mount_args () {
     fi
   elif [ -b "$1" ]; then
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
-    if [ "$TempA" ]; then
-      mnt_error "'$1' is mounted on $TempA!"
-    fi
+    [ "$TempA" ] && mnt_error "'$1' is mounted on $TempA!"
     for i in "${DevArr1[@]}"; do
       if [ "$i" = "$1" ]; then
 # Make the selected device DevArr1[0] and its mount point MntArr1[0].
@@ -43,9 +41,7 @@ chk_umount_args () {
     fi
   elif [ -b "$1" ]; then
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
-    if [ -z "$TempA" ]; then
-      mnt_error "'$1' is not mounted!"
-    fi
+    [ -z "$TempA" ] && mnt_error "'$1' is not mounted!"
     for i in "${DevArr2[@]}"; do
       if [ "$i" = "$1" ]; then
 # Make the selected device DevArr2[0] and its mount point MntArr2[0].
