@@ -236,9 +236,9 @@ dev_arrays () {
     chk_mount_points
 # Make DevArr2 an array of mounted devices, starting with /dev/sdb and
 # giving multiple entries for devices with multiple mount points.
-    readarray -t DevArr2 < <(grep -o '^/dev[\/]*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts)
+    readarray -t DevArr2 < <(grep -o '^/dev/*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts)
 # Make MntArr2 an array of mount points for devices in DevArr2.
-    readarray -t MntArr2 < <(grep '^/dev[\/]*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts | awk '{print $2}')
+    readarray -t MntArr2 < <(grep '^/dev/*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts | awk '{print $2}')
   fi
 }
 
