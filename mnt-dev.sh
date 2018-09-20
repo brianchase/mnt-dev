@@ -107,7 +107,9 @@ umount_dev () {
         mnt_error "Failed to unmount ${DevArr2[i]}!" noexit
       else
         mnt_sudo rmdir "${MntArr2[i]}"
-        [ -L "${DevArr2[i]}" ] && mnt_sudo cryptsetup close "${DevArr2[i]}"
+        if [ -L "${DevArr2[i]}" ]; then
+          mnt_sudo cryptsetup close "${DevArr2[i]}"
+        fi
       fi
     fi
   done
