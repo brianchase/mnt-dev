@@ -3,15 +3,22 @@
 ## About
 
 This Bash script mounts and unmounts removable devices, such as USB
-thumb drives. It opens and closes encrypted devices with
+thumb drives. Features:
+
+* Convenient menus and command line options.
+* Support for mounting and unmounting encrypted devices with
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
+* Flexible use of [sudo](https://www.sudo.ws/) for commands needing
+elevated permissions.
+* Dynamic default values for mount points and device mappings.
+* Detection of devices with multiple mount points.
 
 ## How It Works
 
-If the script detects just one connected device (it looks at
-`/dev/sdb` through `/dev/sdz`), it checks whether the device is
-mounted. If it's mounted, the script asks to unmount it. If it's not
-mounted, the script asks to mount it.
+If the script detects just one connected device (on `/dev/sdb` through
+`/dev/sdz`), it checks whether the device is mounted. If it's mounted,
+the script asks to unmount it. If it's not mounted, the script asks to
+mount it.
 
 If the script detects more than one device, it lists them and ask
 which ones to mount or unmount. You can select individual devices or
@@ -21,16 +28,26 @@ which it updates to reflect the current status of each device.
 
 By default, the script mounts all devices in `/mnt` according to its
 name in `/dev`. For example, it mounts `/dev/sdb1` in `/mnt/sdb1`,
-creating the directory in `/mnt` if necessary. Similarly, if a
-device's file system is crypto-LUKS, it uses
+creating the directory in `/mnt` if necessary. Similarly, if it
+detects that a device has an encrypted file system, it uses
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to open the
 device in `/dev/mapper` under the device's name. For example, it opens
-`/dev/sdb1` at `/dev/mapper/sdb1`, then mounts it at `/mnt/sdb1`.
+`/dev/sdb1` on `/dev/mapper/sdb1`, then mounts it on `/mnt/sdb1`.
 
-After unmounting a device, the script removes the corresponding
-directory in `/mnt` and, if the device is encrypted, uses
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to close the
-corresponding device in `/dev/mapper`.
+The script overrides these defaults if the paths are taken. If
+something is already mounted on `/mnt/sdb1`, it checks `/mnt/sdb1-2`,
+then `/mnt/sdb1-3`, and so on, until it finds a suitable path. The
+same goes for map points: If another encrypted device is open on
+`/dev/mapper/sdb1`, it checks `/dev/mapper/sdb1-2`, and so on. As
+such, it should be able to accommodate whatever you've already mounted
+or opened.
+
+After unmounting a device, the script removes its mount point and, if
+it's encrypted, uses
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to close its
+map point. Neither path needs to be where the script would ordinarily
+put them. So long as it finds a device in the first place, it should
+be able to deal with the corresponding paths.
 
 You may run the script without options and follow the prompts or
 run it with these options:
@@ -53,6 +70,17 @@ To unmount it, use `unmount` or `umount`:
 $ mnt-dev.sh unmount /dev/sdb1
 ```
 
+In fact, `unmount` and `umount` also take mount points or map points.
+Assuming default values, then, and no conflicts with other devices –
+and also, for completeness, that `/dev/sdb1` is encrypted – the
+following have the same effect:
+
+```
+$ mnt-dev.sh unmount /dev/sdb1
+$ mnt-dev.sh unmount /mnt/sdb1
+$ mnt-dev.sh unmount /dev/mapper/sdb1
+```
+
 Using `mount all` tells the script to mount all connected devices that
 aren't mounted:
 
@@ -70,6 +98,10 @@ $ mnt-dev.sh umount all
 Adding `now` to the previous commands bypasses requests for
 confirmation. Unless it encounters an error, the script will silently
 mount or unmount the relevant devices.
+
+Keep in mind that using `now` isn't always a good idea. The
+confirmation prompt names the device and its mount point. You may need
+that information to keep track of what you're doing.
 
 ## Customizing
 
