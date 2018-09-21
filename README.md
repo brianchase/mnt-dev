@@ -133,5 +133,6 @@ Unlicense](https://choosealicense.com/licenses/unlicense/).
 ## Requirements
 
 * [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) (for encrypted devices)
-* [sudo](https://www.sudo.ws/) (used with mount, umount, cryptsetup, mkdir, rmdir)
+* [sudo](https://www.sudo.ws/) (for nonroot users running mount,
+umount, cryptsetup, mkdir, and rmdir)
 
