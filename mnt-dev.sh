@@ -16,19 +16,32 @@ chk_mount_args () {
   elif [ -b "$1" ]; then
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
     [ "$TempA" ] && mnt_error "'$1' is mounted on $TempA!"
-    for i in "${DevArr1[@]}"; do
-      if [ "$i" = "$1" ]; then
+    for i in "${!DevArr1[@]}"; do
+      if [ "${DevArr1[i]}" = "$1" ]; then
 # Make the selected device DevArr1[0] and its mount point MntArr1[0].
+        local TempB="${DevArr1[i]}"
+        local TempC="${MntArr1[i]}"
         unset DevArr1 MntArr1
-        DevArr1[0]="$1"
-        chk_mount_points
+        DevArr1[0]="$TempB"
+        MntArr1[0]="$TempC"
         mount_dev "$2"
-        break;
+        return;
       fi
     done
+    mnt_error "'$1' is an invalid option!"
   else
     mnt_error "'$1' is not a block device!"
   fi
+}
+
+mnt_reset_arr2 () {
+# Make the selected device DevArr2[0] and its mount point MntArr2[0].
+  local TempB="${DevArr2[i]}"
+  local TempC="${MntArr2[i]}"
+  unset DevArr2 MntArr2
+  DevArr2[0]="$TempB"
+  MntArr2[0]="$TempC"
+  umount_dev "$2"
 }
 
 chk_umount_args () {
@@ -39,26 +52,56 @@ chk_umount_args () {
     else
       umount_dev "$2"
     fi
-  elif [ -b "$1" ]; then
-    TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
-    [ -z "$TempA" ] && mnt_error "'$1' is not mounted!"
-    for i in "${DevArr2[@]}"; do
-      if [ "$i" = "$1" ]; then
-# Make the selected device DevArr2[0] and its mount point MntArr2[0].
-        unset DevArr2 MntArr2
-        DevArr2[0]="$1"
-        MntArr2[0]="$(lsblk -no MOUNTPOINT "${DevArr2[0]}" | tail -1)"
-        umount_dev "$2"
-        break;
+  else
+    for i in "${!DevArr2[@]}"; do
+      if [ "${DevArr2[i]}" = "$1" ]; then
+        mnt_reset_arr2 && return;
       fi
     done
-  else
-    mnt_error "'$1' is not a block device!"
+    for i in "${!MntArr2[@]}"; do
+      if [ "${MntArr2[i]}" = "${1%/}" ]; then
+        mnt_reset_arr2 && return;
+      fi
+    done
+    TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
+    for i in "${!MntArr2[@]}"; do
+      if [ "${MntArr2[i]}" = "$TempA" ]; then
+        mnt_reset_arr2 && return;
+      fi
+    done
+    mnt_error "'$1' is an invalid option!"
+  fi
+}
+
+chk_luks_dev () {
+  local FileSys NewDev N=1
+  FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
+  if [ "$FileSys" = crypto_LUKS ]; then
+    NewDev="$(lsblk -lp "${DevArr1[i]}" | awk 'FNR == 3 {print $1}')"
+    if [ -z "$NewDev" ]; then
+# If DevArr1[i] is encrypted but unopened, find where to open it.
+      NewMap="${DevArr1[i]:5}"
+      while true; do
+        if [ -b "/dev/mapper/$NewMap" ]; then
+          NewMap="${DevArr1[i]:5}-$((N += 1))"
+        else
+          NewDev="/dev/mapper/$NewMap"
+          break
+        fi
+      done
+      if ! mnt_sudo cryptsetup open "${DevArr1[i]}" "$NewMap"; then
+        mnt_error "Failed to open ${DevArr1[i]}!" noexit
+        mnt_sudo rmdir "${MntArr1[i]}"
+        return 1
+      fi
+    fi
+# Change the value of DevArr1[i] to the path where it was opened.
+    DevArr1[$i]="$NewDev"
   fi
 }
 
 mount_dev () {
-  local MntDev FileSys i
+  local MntDev NewMap i
   for i in "${!DevArr1[@]}"; do
     if [ "$1" != now ]; then
       read -r -p "Mount ${DevArr1[i]} on ${MntArr1[i]}? [y/n] " MntDev
@@ -67,23 +110,13 @@ mount_dev () {
       if [ ! -d "${MntArr1[i]}" ]; then
         mnt_sudo mkdir -p "${MntArr1[i]}" || continue
       fi
-      FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
-      if [ "$FileSys" = crypto_LUKS ]; then
-        if [ -L "/dev/mapper/${DevArr1[i]:5}" ]; then
-          mnt_error "/dev/mapper/${DevArr1[i]:5} already exists!" noexit
-          mnt_sudo rmdir "${MntArr1[i]}"
-        elif ! mnt_sudo cryptsetup open "${DevArr1[i]}" "${DevArr1[i]:5}"; then
-          mnt_error "Failed to open ${DevArr1[i]}!" noexit
-          mnt_sudo rmdir "${MntArr1[i]}"
-        elif ! mnt_sudo mount /dev/mapper/"${DevArr1[i]:5}" "${MntArr1[i]}"; then
-          mnt_error "Failed to mount ${DevArr1[i]}!" noexit
-          mnt_sudo rmdir "${MntArr1[i]}"
-          mnt_sudo cryptsetup close /dev/mapper/"${DevArr1[i]:5}"
-        fi
-      elif ! mnt_sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
+      chk_luks_dev || continue
+      if ! mnt_sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
         mnt_error "Failed to mount ${DevArr1[i]}!" noexit
         mnt_sudo rmdir "${MntArr1[i]}"
+        [ "$NewMap" ] && mnt_sudo cryptsetup close "$NewMap"
       fi
+      unset NewMap
     fi
   done
 }
@@ -198,30 +231,13 @@ mnt_error () {
   [ "$2" = noexit ] || exit 1
 }
 
-chk_mount_points () {
-# Ensure that no device in MntArr1 is a mount point.
-  local N=1 i
-  for i in "${!DevArr1[@]}"; do
-    local NewPnt="/$PNT/${DevArr1[i]:5}"
-    while true; do
-      if mountpoint -q "$NewPnt"; then
-        NewPnt="/$PNT/${DevArr1[i]:5}-$((N += 1))"
-      else
-        MntArr1+=("$NewPnt")
-        break
-      fi
-    done
-  done
-}
-
 dev_arrays () {
-  local i j
+  local FileSys N=1 i j
 # Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     mnt_error "No connected devices!"
   else
-# Remove mounted devices from DevArr1
     for i in "${DevArr1[@]}"; do
       if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
         for j in "${!DevArr1[@]}"; do
@@ -230,15 +246,27 @@ dev_arrays () {
             DevArr1=("${DevArr1[@]}")
           fi
         done
+        FileSys="$(lsblk -dnpo FSTYPE "$i")"
+        if [ "$FileSys" = crypto_LUKS ]; then
+          i="$(lsblk -lp "$i" | awk 'FNR == 3 {print $1}')"
+        fi
+# Make DevArr2 an array of mounted devices.
+        DevArr2+=($(findmnt -no SOURCE "$i"))
+# Make MntArr2 an array of mount points for devices in DevArr2.
+        MntArr2+=($(findmnt -no TARGET "$i"))
+      else
+# Make MntArr1 an array of mount points for devices in DevArr1.
+        local NewPnt="/$PNT/${i:5}"
+        while true; do
+          if mountpoint -q "$NewPnt"; then
+            NewPnt="/$PNT/${i:5}-$((N += 1))"
+          else
+            MntArr1+=("$NewPnt")
+            break
+          fi
+        done
       fi
     done
-# Make MntArr1 an array of mount points for devices in DevArr1.
-    chk_mount_points
-# Make DevArr2 an array of mounted devices, starting with /dev/sdb and
-# giving multiple entries for devices with multiple mount points.
-    readarray -t DevArr2 < <(grep -o '^/dev/*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts)
-# Make MntArr2 an array of mount points for devices in DevArr2.
-    readarray -t MntArr2 < <(grep '^/dev/*[a-z]*/sd[b-z][0-9]*\b' /proc/mounts | awk '{print $2}')
   fi
 }
 
