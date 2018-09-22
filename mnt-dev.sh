@@ -42,6 +42,7 @@ mnt_reset_arr2 () {
   DevArr2[0]="$TempB"
   MntArr2[0]="$TempC"
   umount_dev "$2"
+  exit
 }
 
 chk_umount_args () {
@@ -54,20 +55,14 @@ chk_umount_args () {
     fi
   else
     for i in "${!DevArr2[@]}"; do
-      if [ "${DevArr2[i]}" = "$1" ]; then
-        mnt_reset_arr2 && return;
-      fi
+      [ "${DevArr2[i]}" = "$1" ] && mnt_reset_arr2
     done
     for i in "${!MntArr2[@]}"; do
-      if [ "${MntArr2[i]}" = "${1%/}" ]; then
-        mnt_reset_arr2 && return;
-      fi
+      [ "${MntArr2[i]}" = "${1%/}" ] && mnt_reset_arr2
     done
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
     for i in "${!MntArr2[@]}"; do
-      if [ "${MntArr2[i]}" = "$TempA" ]; then
-        mnt_reset_arr2 && return;
-      fi
+      [ "${MntArr2[i]}" = "$TempA" ] && mnt_reset_arr2
     done
     mnt_error "'$1' is an invalid option!"
   fi
