@@ -19,11 +19,8 @@ chk_mount_args () {
     for i in "${!DevArr1[@]}"; do
       if [ "${DevArr1[i]}" = "$1" ]; then
 # Make the selected device DevArr1[0] and its mount point MntArr1[0].
-        local TempB="${DevArr1[i]}"
-        local TempC="${MntArr1[i]}"
-        unset DevArr1 MntArr1
-        DevArr1[0]="$TempB"
-        MntArr1[0]="$TempC"
+        DevArr1=("${DevArr1[@]:i:1}")
+        MntArr1=("${MntArr1[@]:i:1}")
         mount_dev "$2"
         return;
       fi
@@ -36,11 +33,8 @@ chk_mount_args () {
 
 mnt_reset_arr2 () {
 # Make the selected device DevArr2[0] and its mount point MntArr2[0].
-  local TempB="${DevArr2[i]}"
-  local TempC="${MntArr2[i]}"
-  unset DevArr2 MntArr2
-  DevArr2[0]="$TempB"
-  MntArr2[0]="$TempC"
+  DevArr2=("${DevArr2[@]:i:1}")
+  MntArr2=("${MntArr2[@]:i:1}")
   umount_dev "$2"
   exit
 }
@@ -175,19 +169,13 @@ mnt_menu () {
   done
   if [ "$Opt" -le "${#DevArr1[*]}" ]; then
 # Make the selected device DevArr1[0] and its mount point MntArr1[0].
-    local TempA="${DevArr1[(($Opt - 1))]}"
-    local TempB="${MntArr1[(($Opt - 1))]}"
-    unset DevArr1 MntArr1
-    DevArr1[0]="$TempA"
-    MntArr1[0]="$TempB"
+    DevArr1=("${DevArr1[@]:(($Opt - 1)):1}")
+    MntArr1=("${MntArr1[@]:(($Opt - 1)):1}")
     mount_dev now
   elif [ "$Opt" -gt "${#DevArr1[*]}" ] && [ "$Opt" -le "$((${#DevArr1[*]} + ${#DevArr2[*]}))" ]; then
 # Make the selected device DevArr2[0] and its mount point MntArr2[0].
-    local TempA="${DevArr2[(($Opt - "${#DevArr1[*]}" - 1))]}"
-    local TempB="${MntArr2[(($Opt - "${#DevArr1[*]}" - 1))]}"
-    unset DevArr2 MntArr2
-    DevArr2[0]="$TempA"
-    MntArr2[0]="$TempB"
+    DevArr2=("${DevArr2[@]:(($Opt - ${#DevArr1[*]} - 1)):1}")
+    MntArr2=("${MntArr2[@]:(($Opt - ${#DevArr1[*]} - 1)):1}")
     umount_dev now
   elif [ "${#DevArr1[*]}" -gt "1" ] && [ "$Opt" -eq "$((${#DevArr1[*]} + ${#DevArr2[*]} + 1))" ]; then
 # Mount all devices in DevArr1 on their mount points in MntArr1.
