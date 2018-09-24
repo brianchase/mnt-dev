@@ -35,7 +35,7 @@ mnt_reset_arr2 () {
 # Make the selected device DevArr2[0] and its mount point MntArr2[0].
   DevArr2=("${DevArr2[@]:i:1}")
   MntArr2=("${MntArr2[@]:i:1}")
-  umount_dev "$2"
+  umount_dev "$1"
   exit
 }
 
@@ -49,14 +49,14 @@ chk_umount_args () {
     fi
   else
     for i in "${!DevArr2[@]}"; do
-      [ "${DevArr2[i]}" = "$1" ] && mnt_reset_arr2
+      [ "${DevArr2[i]}" = "$1" ] && mnt_reset_arr2 "$2"
     done
     for i in "${!MntArr2[@]}"; do
-      [ "${MntArr2[i]}" = "${1%/}" ] && mnt_reset_arr2
+      [ "${MntArr2[i]}" = "${1%/}" ] && mnt_reset_arr2 "$2"
     done
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
     for i in "${!MntArr2[@]}"; do
-      [ "${MntArr2[i]}" = "$TempA" ] && mnt_reset_arr2
+      [ "${MntArr2[i]}" = "$TempA" ] && mnt_reset_arr2 "$2"
     done
     mnt_error "'$1' is an invalid option!"
   fi
@@ -216,7 +216,7 @@ mnt_error () {
 }
 
 dev_arrays () {
-  local FileSys N=1 i j
+  local FileSys EmptyDir N=1 i j
 # Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
