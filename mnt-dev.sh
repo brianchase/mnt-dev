@@ -235,9 +235,9 @@ dev_arrays () {
           i="$(lsblk -lp "$i" | awk 'FNR == 3 {print $1}')"
         fi
 # Make DevArr2 an array of mounted devices.
-        DevArr2+=($(findmnt -no SOURCE "$i"))
+        DevArr2+=("$(findmnt -no SOURCE "$i")")
 # Make MntArr2 an array of mount points for devices in DevArr2.
-        MntArr2+=($(findmnt -no TARGET "$i"))
+        MntArr2+=("$(findmnt -no TARGET "$i")")
       else
 # Make MntArr1 an array of mount points for devices in DevArr1.
         local NewPnt="/$PNT/${i:5}"
