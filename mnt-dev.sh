@@ -74,7 +74,7 @@ chk_luks_dev () {
   if [ "$FileSys" = crypto_LUKS ]; then
     NewDev="$(lsblk -lp "${DevArr1[i]}" | awk 'FNR == 3 {print $1}')"
     if [ -z "$NewDev" ]; then
-# If DevArr1[i] is encrypted but unopened, find where to open it.
+# If the device is encrypted but unopened, find where to open it.
       NewMap="${DevArr1[i]:5}"
       while true; do
         if [ -b "/dev/mapper/$NewMap" ]; then
@@ -90,7 +90,7 @@ chk_luks_dev () {
         return 1
       fi
     fi
-# Change the value of DevArr1[i] to the path where it was opened.
+# Change the value in the array to the path where it was opened.
     DevArr1[$i]="$NewDev"
   fi
 }
@@ -109,6 +109,7 @@ mount_dev () {
       if ! mnt_sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
         mnt_error "Failed to mount ${DevArr1[i]}!" noexit
         mnt_sudo rmdir "${MntArr1[i]}"
+# Close the device only if chk_lucks_dev just opened it.
         [ "$NewMap" ] && mnt_sudo cryptsetup close "$NewMap"
       fi
       unset NewMap
@@ -253,7 +254,11 @@ dev_arrays () {
 # Make MntArr1 an array of mount points for devices in DevArr1.
         local NewPnt="/$PNT/${i:5}"
         while true; do
+# For a mountpoint or any file but an empty directory, change NewPnt.
+          EmptyDir="$(find "$NewPnt" -maxdepth 0 -type d -empty 2>/dev/null)"
           if mountpoint -q "$NewPnt"; then
+            NewPnt="/$PNT/${i:5}-$((N += 1))"
+          elif [ -e "$NewPnt" ] && [ -z "$EmptyDir" ]; then
             NewPnt="/$PNT/${i:5}-$((N += 1))"
           else
             MntArr1+=("$NewPnt")

@@ -35,19 +35,18 @@ device in `/dev/mapper` under the device's name. For example, it opens
 `/dev/sdb1` on `/dev/mapper/sdb1`, then mounts it on `/mnt/sdb1`.
 
 The script overrides these defaults if the paths are taken. If
-something is already mounted on `/mnt/sdb1`, it checks `/mnt/sdb1-2`,
-then `/mnt/sdb1-3`, and so on, until it finds a suitable path. The
-same goes for map points: If another encrypted device is open on
-`/dev/mapper/sdb1`, it checks `/dev/mapper/sdb1-2`, and so on. As
-such, it should be able to accommodate whatever you've already mounted
-or opened.
+`/mnt/sdb1` is already a mount point or any file other than an empty
+directory, it tries `/mnt/sdb1-2`, then `/mnt/sdb1-3`, and so on,
+until it finds a suitable path. The same goes for map points: If
+another encrypted device is open on `/dev/mapper/sdb1`, it checks
+`/dev/mapper/sdb1-2`, and so on.
 
 After unmounting a device, the script removes its mount point and, if
 it's encrypted, uses
 [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to close its
 map point. Neither path needs to be where the script would ordinarily
 put them. So long as it finds a device in the first place, it should
-be able to deal with the corresponding paths.
+be able to deal with them.
 
 You may run the script without options and follow the prompts or
 run it with these options:
