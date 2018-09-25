@@ -123,18 +123,14 @@ mnt_menu () {
   while true; do
     local N=0 Opt i
     printf '%s\n\n' "Please choose:"
-    if [ "${#DevArr1[*]}" -ge 1 ]; then
 # List all unmounted devices for mounting.
-      for i in "${!DevArr1[@]}"; do
-        printf '\t%s\n' "$((N += 1)). Mount ${DevArr1[i]} on ${MntArr1[i]}"
-      done
-    fi
-    if [ "${#DevArr2[*]}" -ge 1 ]; then
+    for i in "${!DevArr1[@]}"; do
+      printf '\t%s\n' "$((N += 1)). Mount ${DevArr1[i]} on ${MntArr1[i]}"
+    done
 # List all mounted devices for unmounting.
-      for i in "${!DevArr2[@]}"; do
-        printf '\t%s\n' "$((N += 1)). Unmount ${DevArr2[i]} on ${MntArr2[i]}"
-      done
-    fi
+    for i in "${!DevArr2[@]}"; do
+      printf '\t%s\n' "$((N += 1)). Unmount ${DevArr2[i]} on ${MntArr2[i]}"
+    done
 # If more than one device is unmounted, offer to mount them all.
     [ "${#DevArr1[*]}" -gt 1 ] && printf '\t%s\n' "$((N += 1)). Mount all unmounted devices"
 # If more than one device is mounted, offer to unmount them all.
