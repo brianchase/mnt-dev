@@ -213,6 +213,7 @@ dev_arrays () {
           if [ "${DevArr1[$j]}" = "$i" ]; then
             unset "DevArr1[$j]"
             DevArr1=("${DevArr1[@]}")
+            break
           fi
         done
         FileSys="$(lsblk -dnpo FSTYPE "$i")"
