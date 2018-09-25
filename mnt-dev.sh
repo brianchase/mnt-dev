@@ -13,30 +13,6 @@ mnt_reset_arr1 () {
   exit
 }
 
-chk_mount_args () {
-  local TempA i
-  if [ "$1" = all ]; then
-    if [ "${#DevArr1[*]}" -eq 0 ]; then
-      mnt_error "All connected devices are mounted!"
-    else
-      mount_dev "$2"
-    fi
-  elif [ -b "$1" ]; then
-    TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
-    [ "$TempA" ] && mnt_error "'$1' is mounted on $TempA!"
-    for i in "${!DevArr1[@]}"; do
-      [ "${DevArr1[i]}" = "$1" ] && mnt_reset_arr1 "$2"
-    done
-    TempA="$(lsblk -lnpso NAME "$1" | awk 'FNR == 2')"
-    for i in "${!DevArr1[@]}"; do
-      [ "${DevArr1[i]}" = "$TempA" ] && mnt_reset_arr1 "$2"
-    done
-    mnt_error "'$1' is an invalid option!"
-  else
-    mnt_error "'$1' is not a block device!"
-  fi
-}
-
 mnt_reset_arr2 () {
 # Make the selected device DevArr2[0] and its mount point MntArr2[0].
   DevArr2=("${DevArr2[@]:i:1}")
@@ -45,27 +21,29 @@ mnt_reset_arr2 () {
   exit
 }
 
-chk_umount_args () {
+mnt_args () {
   local TempA i
-  if [ "$1" = all ]; then
-    if [ "${#DevArr2[*]}" -eq 0 ]; then
-      mnt_error "No connected devices are mounted!"
-    else
-      umount_dev "$2"
-    fi
-  else
-    for i in "${!DevArr2[@]}"; do
-      [ "${DevArr2[i]}" = "$1" ] && mnt_reset_arr2 "$2"
-    done
+  if mountpoint -q "$1"; then
     for i in "${!MntArr2[@]}"; do
       [ "${MntArr2[i]}" = "${1%/}" ] && mnt_reset_arr2 "$2"
+    done
+  elif [ -b "$1" ]; then
+    for i in "${!DevArr1[@]}"; do
+      [ "${DevArr1[i]}" = "$1" ] && mnt_reset_arr1 "$2"
+    done
+    for i in "${!DevArr2[@]}"; do
+      [ "${DevArr2[i]}" = "$1" ] && mnt_reset_arr2 "$2"
     done
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
     for i in "${!MntArr2[@]}"; do
       [ "${MntArr2[i]}" = "$TempA" ] && mnt_reset_arr2 "$2"
     done
-    mnt_error "'$1' is an invalid option!"
+    TempA="$(lsblk -lnpso NAME "$1" | awk 'FNR == 2')"
+    for i in "${!DevArr1[@]}"; do
+      [ "${DevArr1[i]}" = "$TempA" ] && mnt_reset_arr1 "$2"
+    done
   fi
+  mnt_error "'$1' is an invalid option!"
 }
 
 chk_luks_dev () {
@@ -228,6 +206,7 @@ dev_arrays () {
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     mnt_error "No connected devices!"
   else
+# Mounted devices in DevArr1 go in DevArr2. Remove them from DevArr1.
     for i in "${DevArr1[@]}"; do
       if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
         for j in "${!DevArr1[@]}"; do
@@ -272,11 +251,16 @@ mnt_main () {
   if [ "$BN1" = "$BN2" ]; then
     dev_arrays
     case $1 in
-      mount) chk_mount_args "$2" "$3" ;;
-      unmount|umount) chk_umount_args "$2" "$3" ;;
-      *) chk_arrays ;;
+      '') chk_arrays ;;
+      mount) [ "${#DevArr1[*]}" -eq 0 ] && \
+          mnt_error "All connected devices are mounted!"
+        mount_dev "$2" ;;
+      umount|unmount) [ "${#DevArr2[*]}" -eq 0 ] && \
+          mnt_error "No connected devices are mounted!"
+        umount_dev "$2" ;;
+      *) mnt_args "$1" "$2"
     esac
   fi
 }
 
-mnt_main "$1" "$2" "$3"
+mnt_main "$1" "$2"

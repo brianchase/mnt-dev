@@ -52,46 +52,42 @@ You may run the script without options and follow the prompts or
 run it with these options:
 
 ```
-$ mnt-dev.sh [mount|unmount|umount] [device|all] [now]
+$ mnt-dev.sh [device|mount point|map point|mount|umount|unmount] [now]
 ```
 
-The options `mount`, `unmount`, and `umount` (the latter two are
-synonymous) require the name of a particular device or `all`. To mount
-`/dev/sdb1` in this way:
+To mount a particular device, pass the option `device` or, for an
+opened encrypted device, `map point`. If `/dev/sdb1` is an encrypted
+device open on `/dev/mapper/sdb1` but not mounted, either of the
+following commands will prompt you to mount it:
 
 ```
-$ mnt-dev.sh mount /dev/sdb1
+$ mnt-dev.sh /dev/sdb1
+$ mnt-dev.sh /dev/mapper/sdb1
 ```
 
-To unmount it, use `unmount` or `umount`:
+To unmount a particular device, pass the option `device`, `mount
+point`, or `map point` – the latter, again, for an encrypted device.
+If the device in the previous example were mounted on `/mnt/sdb1`, any
+of the following commands would prompt you to unmount it:
 
 ```
-$ mnt-dev.sh unmount /dev/sdb1
+$ mnt-dev.sh /dev/sdb1
+$ mnt-dev.sh /mnt/sdb1
+$ mnt-dev.sh /dev/mapper/sdb1
 ```
 
-In fact, `unmount` and `umount` also take mount points or map points.
-Assuming default values, then, and no conflicts with other devices –
-and also, for completeness, that `/dev/sdb1` is encrypted – the
-following have the same effect:
-
-```
-$ mnt-dev.sh unmount /dev/sdb1
-$ mnt-dev.sh unmount /mnt/sdb1
-$ mnt-dev.sh unmount /dev/mapper/sdb1
-```
-
-Using `mount all` tells the script to mount all connected devices that
+Using `mount` tells the script to mount all connected devices that
 aren't mounted:
 
 ```
-$ mnt-dev.sh mount all
+$ mnt-dev.sh mount
 ```
 
-Using `unmount all` or `umount all` tells the script to unmount all
-connected devices that are mounted:
+Using `umount` or `unmount` tells the script to unmount all connected
+devices that are mounted:
 
 ```
-$ mnt-dev.sh umount all
+$ mnt-dev.sh umount
 ```
 
 Adding `now` to the previous commands bypasses requests for
@@ -100,7 +96,7 @@ mount or unmount the relevant devices.
 
 Keep in mind that using `now` isn't always a good idea. The
 confirmation prompt names the device and its mount point. You may need
-that information to keep track of what you're doing.
+that information to keep track of what's happening.
 
 ## Customizing
 
