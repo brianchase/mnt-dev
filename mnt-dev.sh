@@ -5,6 +5,14 @@
 # The script mount devices in /mnt:
 PNT="mnt"
 
+mnt_reset_arr1 () {
+# Make the selected device DevArr1[0] and its mount point MntArr1[0].
+  DevArr1=("${DevArr1[@]:i:1}")
+  MntArr1=("${MntArr1[@]:i:1}")
+  mount_dev "$1"
+  exit
+}
+
 chk_mount_args () {
   local TempA i
   if [ "$1" = all ]; then
@@ -17,13 +25,11 @@ chk_mount_args () {
     TempA="$(lsblk -no MOUNTPOINT "$1" 2>/dev/null | tail -1)"
     [ "$TempA" ] && mnt_error "'$1' is mounted on $TempA!"
     for i in "${!DevArr1[@]}"; do
-      if [ "${DevArr1[i]}" = "$1" ]; then
-# Make the selected device DevArr1[0] and its mount point MntArr1[0].
-        DevArr1=("${DevArr1[@]:i:1}")
-        MntArr1=("${MntArr1[@]:i:1}")
-        mount_dev "$2"
-        return;
-      fi
+      [ "${DevArr1[i]}" = "$1" ] && mnt_reset_arr1 "$2"
+    done
+    TempA="$(lsblk -lnpso NAME "$1" | awk 'FNR == 2')"
+    for i in "${!DevArr1[@]}"; do
+      [ "${DevArr1[i]}" = "$TempA" ] && mnt_reset_arr1 "$2"
     done
     mnt_error "'$1' is an invalid option!"
   else
