@@ -217,7 +217,7 @@ dev_arrays () {
         unset "DevArr1[$i]"
       fi
     done
-    DevArr1=("${DevArr1[@]}")
+    [ "${#DevArr2[*]}" -gt 0 ] && DevArr1=("${DevArr1[@]}")
     for i in "${!DevArr1[@]}"; do
 # Make MntArr1 an array of mount points for devices in DevArr1.
       NewPnt="/$PNT/$(basename "${DevArr1[i]}")"
