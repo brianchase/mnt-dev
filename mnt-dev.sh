@@ -50,23 +50,20 @@ chk_luks_dev () {
   local FileSys NewDev N=1
   FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
   if [ "$FileSys" = crypto_LUKS ]; then
-    NewDev="$(lsblk -lp "${DevArr1[i]}" | awk 'FNR == 3 {print $1}')"
-    if [ -z "$NewDev" ]; then
 # If the device is encrypted but unopened, find where to open it.
-      NewMap="${DevArr1[i]:5}"
-      while true; do
-        if [ -b "/dev/mapper/$NewMap" ]; then
-          NewMap="${DevArr1[i]:5}-$((N += 1))"
-        else
-          NewDev="/dev/mapper/$NewMap"
-          break
-        fi
-      done
-      if ! mnt_sudo cryptsetup open "${DevArr1[i]}" "$NewMap"; then
-        mnt_error "Failed to open ${DevArr1[i]}!" noexit
-        mnt_sudo rmdir "${MntArr1[i]}"
-        return 1
+    NewMap="$(basename "${DevArr1[i]}")"
+    while true; do
+      if [ -b "/dev/mapper/$NewMap" ]; then
+        NewMap="$(basename "${DevArr1[i]}")-$((N += 1))"
+      else
+        NewDev="/dev/mapper/$NewMap"
+        break
       fi
+    done
+    if ! mnt_sudo cryptsetup open "${DevArr1[i]}" "$NewMap"; then
+      mnt_error "Failed to open ${DevArr1[i]}!" noexit
+      mnt_sudo rmdir "${MntArr1[i]}"
+      return 1
     fi
 # Change the value in the array to the path where it was opened.
     DevArr1[$i]="$NewDev"
@@ -200,46 +197,42 @@ mnt_error () {
 }
 
 dev_arrays () {
-  local FileSys EmptyDir N=1 i j
+  local FileSys NewDev EmptyDir N=1 i
 # Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     mnt_error "No connected devices!"
   else
-# Mounted devices in DevArr1 go in DevArr2. Remove them from DevArr1.
-    for i in "${DevArr1[@]}"; do
-      if [ "$(lsblk -no MOUNTPOINT "$i")" ]; then
-        for j in "${!DevArr1[@]}"; do
-          if [ "${DevArr1[$j]}" = "$i" ]; then
-            unset "DevArr1[$j]"
-            DevArr1=("${DevArr1[@]}")
-            break
-          fi
-        done
-        FileSys="$(lsblk -dnpo FSTYPE "$i")"
-        if [ "$FileSys" = crypto_LUKS ]; then
-          i="$(lsblk -lp "$i" | awk 'FNR == 3 {print $1}')"
-        fi
-# Make DevArr2 an array of mounted devices.
-        DevArr2+=("$(findmnt -no SOURCE "$i")")
-# Make MntArr2 an array of mount points for devices in DevArr2.
-        MntArr2+=("$(findmnt -no TARGET "$i")")
-      else
-# Make MntArr1 an array of mount points for devices in DevArr1.
-        local NewPnt="/$PNT/${i:5}"
-        while true; do
-# For a mountpoint or any file but an empty directory, change NewPnt.
-          EmptyDir="$(find "$NewPnt" -maxdepth 0 -type d -empty 2>/dev/null)"
-          if mountpoint -q "$NewPnt"; then
-            NewPnt="/$PNT/${i:5}-$((N += 1))"
-          elif [ -e "$NewPnt" ] && [ -z "$EmptyDir" ]; then
-            NewPnt="/$PNT/${i:5}-$((N += 1))"
-          else
-            MntArr1+=("$NewPnt")
-            break
-          fi
-        done
+    for i in "${!DevArr1[@]}"; do
+      FileSys="$(lsblk -dnpo FSTYPE "${DevArr1[i]}")"
+      if [ "$FileSys" = crypto_LUKS ]; then
+        NewDev="$(lsblk -lp "${DevArr1[i]}" | awk 'FNR == 3 {print $1}')"
+        [ "$NewDev" ] && DevArr1[$i]="$NewDev"
       fi
+      if [ "$(lsblk -no MOUNTPOINT "${DevArr1[i]}")" ]; then
+# Make DevArr2 an array of mounted devices.
+        DevArr2+=("$(findmnt -no SOURCE "${DevArr1[i]}")")
+# Make MntArr2 an array of mount points for devices in DevArr2.
+        MntArr2+=("$(findmnt -no TARGET "${DevArr1[i]}")")
+        unset "DevArr1[$i]"
+      fi
+    done
+    DevArr1=("${DevArr1[@]}")
+    for i in "${!DevArr1[@]}"; do
+# Make MntArr1 an array of mount points for devices in DevArr1.
+      NewPnt="/$PNT/$(basename "${DevArr1[i]}")"
+      while true; do
+# For a mountpoint or any file but an empty directory, change NewPnt.
+        EmptyDir="$(find "$NewPnt" -maxdepth 0 -type d -empty 2>/dev/null)"
+        if mountpoint -q "$NewPnt"; then
+          NewPnt="/$PNT/$(basename "${DevArr1[i]}")-$((N += 1))"
+        elif [ -e "$NewPnt" ] && [ -z "$EmptyDir" ]; then
+          NewPnt="/$PNT/$(basename "${DevArr1[i]}")-$((N += 1))"
+        else
+          MntArr1+=("$NewPnt")
+          break
+        fi
+      done
     done
   fi
 }
