@@ -193,7 +193,7 @@ mnt_error () {
 }
 
 dev_arrays () {
-  local FileSys NewDev EmptyDir N=1 i
+  local EmptyDir FileSys N=1 NewDev i
 # Make DevArr1 an array of connected devices.
   readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
@@ -207,9 +207,9 @@ dev_arrays () {
       fi
       if [ "$(lsblk -no MOUNTPOINT "${DevArr1[i]}")" ]; then
 # Make DevArr2 an array of mounted devices.
-        DevArr2+=("$(findmnt -no SOURCE "${DevArr1[i]}")")
+        DevArr2+=($(findmnt -no SOURCE "${DevArr1[i]}"))
 # Make MntArr2 an array of mount points for devices in DevArr2.
-        MntArr2+=("$(findmnt -no TARGET "${DevArr1[i]}")")
+        MntArr2+=($(findmnt -no TARGET "${DevArr1[i]}"))
         unset "DevArr1[$i]"
       fi
     done
