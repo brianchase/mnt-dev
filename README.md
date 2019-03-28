@@ -7,9 +7,9 @@ thumb drives. Features:
 
 * Convenient menus and command line options.
 * Support for mounting and unmounting encrypted devices with
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/).
-* Flexible use of [sudo](https://www.sudo.ws/) for commands needing
-elevated permissions.
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup "cryptsetup").
+* Flexible use of [sudo](https://www.sudo.ws "sudo") for commands
+  needing elevated permissions.
 * Dynamic default values for mount points and device mappings.
 * Detection of devices with multiple mount points.
 
@@ -30,9 +30,10 @@ By default, the script mounts all devices in `/mnt` according to its
 name in `/dev`. For example, it mounts `/dev/sdb1` in `/mnt/sdb1`,
 creating the directory in `/mnt` if necessary. Similarly, if it
 detects that a device has an encrypted file system, it uses
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to open the
-device in `/dev/mapper` under the device's name. For example, it opens
-`/dev/sdb1` on `/dev/mapper/sdb1`, then mounts it on `/mnt/sdb1`.
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup "cryptsetup") to
+open the device in `/dev/mapper` under the device's name. For example,
+it opens `/dev/sdb1` on `/dev/mapper/sdb1`, then mounts it on
+`/mnt/sdb1`.
 
 The script overrides these defaults if the paths are taken. If
 `/mnt/sdb1` is already a mount point or any file other than an empty
@@ -43,10 +44,10 @@ another encrypted device is open on `/dev/mapper/sdb1`, it checks
 
 After unmounting a device, the script removes its mount point and, if
 it's encrypted, uses
-[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) to close its
-map point. Neither path needs to be where the script would ordinarily
-put them. So long as it finds a device in the first place, it should
-be able to deal with them.
+[cryptsetup](https://gitlab.com/cryptsetup/cryptsetup "cryptsetup") to
+close its map point. Neither path needs to be where the script would
+ordinarily put them. So long as it finds a device in the first place,
+it should be able to deal with them.
 
 You may run the script without options and follow the prompts or
 run it with these options:
@@ -66,7 +67,7 @@ $ mnt-dev.sh /dev/mapper/sdb1
 ```
 
 To unmount a particular device, pass the option `device`, `mount
-point`, or `map point` – the latter, again, for an encrypted device.
+point`, or `map point` — the latter, again, for an encrypted device.
 If the device in the previous example were mounted on `/mnt/sdb1`, any
 of the following commands would prompt you to unmount it:
 
@@ -117,17 +118,18 @@ readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk
 
 ```
 
-Change `/dev/sd[b-z]*` as necessary – for example, to `/dev/sd[c-z]*`
+Change `/dev/sd[b-z]*` as necessary — for example, to `/dev/sd[c-z]*`
 to treat `/dev/sdc` as the first possible connected device.
 
 ## License
 
 This project is in the public domain under [The
-Unlicense](https://choosealicense.com/licenses/unlicense/).
+Unlicense](https://choosealicense.com/licenses/unlicense "The
+Unlicense").
 
 ## Requirements
 
-* [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup/) (for encrypted devices)
-* [sudo](https://www.sudo.ws/) (for nonroot users running mount,
+* [cryptsetup](https://gitlab.com/cryptsetup/cryptsetup "cryptsetup") (for encrypted devices)
+* [sudo](https://www.sudo.ws "sudo") (for nonroot users running mount,
 umount, cryptsetup, mkdir, and rmdir)
 
