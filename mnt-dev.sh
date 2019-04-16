@@ -84,7 +84,7 @@ mount_dev () {
       if ! mnt_sudo mount "${DevArr1[i]}" "${MntArr1[i]}"; then
         mnt_error "Failed to mount ${DevArr1[i]}!" noexit
         mnt_sudo rmdir "${MntArr1[i]}"
-# Close the device only if chk_lucks_dev just opened it.
+# Close the device only if chk_luks_dev just opened it.
         [ "$NewMap" ] && mnt_sudo cryptsetup close "$NewMap"
       fi
       unset NewMap
