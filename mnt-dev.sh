@@ -154,7 +154,7 @@ mnt_menu () {
     DevArr2=("${DevArr2[@]:(($Opt - ${#DevArr1[*]} - 1)):1}")
     MntArr2=("${MntArr2[@]:(($Opt - ${#DevArr1[*]} - 1)):1}")
     umount_dev now
-  elif [ "${#DevArr1[*]}" -gt "1" ] && [ "$Opt" -eq "$((${#DevArr1[*]} + ${#DevArr2[*]} + 1))" ]; then
+  elif [ "${#DevArr1[*]}" -gt 1 ] && [ "$Opt" -eq "$((${#DevArr1[*]} + ${#DevArr2[*]} + 1))" ]; then
 # Mount all devices in DevArr1 on their mount points in MntArr1.
     mount_dev now
   else
