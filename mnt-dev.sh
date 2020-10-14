@@ -195,7 +195,7 @@ mnt_error () {
 dev_arrays () {
   local EmptyDir FileSys N=1 NewDev i
 # Make DevArr1 an array of connected devices.
-  readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[b-z]* 2>/dev/null | awk '{if ($2) print $1;}')
+  readarray -t DevArr1 < <(lsblk -dpno NAME,FSTYPE /dev/sd[a-z]* 2>/dev/null | awk '{if ($2) print $1;}')
   if [ "${#DevArr1[*]}" -eq 0 ]; then
     mnt_error "No connected devices!"
   else
