@@ -15,7 +15,7 @@ thumb drives. Features:
 
 ## How It Works
 
-If the script detects just one connected device (on `/dev/sdb` through
+If the script detects just one connected device (on `/dev/sda` through
 `/dev/sdz`), it checks whether the device is mounted. If it's mounted,
 the script asks to unmount it. If it's not mounted, the script asks to
 mount it.
