@@ -3,7 +3,7 @@
 # From: https://github.com/brianchase/mnt-dev
 
 # The script mount devices in /mnt:
-PNT="mnt"
+Point="mnt"
 
 mnt_reset_arr1 () {
 # Make the selected device DevArr1[0] and its mount point MntArr1[0].
@@ -216,16 +216,16 @@ dev_arrays () {
     [ "${#DevArr2[*]}" -gt 0 ] && DevArr1=("${DevArr1[@]}")
     for i in "${!DevArr1[@]}"; do
 # Make MntArr1 an array of mount points for devices in DevArr1.
-      NewPnt="/$PNT/$(basename "${DevArr1[i]}")"
+      NewPoint="/$Point/$(basename "${DevArr1[i]}")"
       while true; do
-# For a mountpoint or any file but an empty directory, change NewPnt.
-        EmptyDir="$(find "$NewPnt" -maxdepth 0 -type d -empty 2>/dev/null)"
-        if mountpoint -q "$NewPnt"; then
-          NewPnt="/$PNT/$(basename "${DevArr1[i]}")-$((N += 1))"
-        elif [ -e "$NewPnt" ] && [ -z "$EmptyDir" ]; then
-          NewPnt="/$PNT/$(basename "${DevArr1[i]}")-$((N += 1))"
+# For a mountpoint or any file but an empty directory, change NewPoint.
+        EmptyDir="$(find "$NewPoint" -maxdepth 0 -type d -empty 2>/dev/null)"
+        if mountpoint -q "$NewPoint"; then
+          NewPoint="/$Point/$(basename "${DevArr1[i]}")-$((N += 1))"
+        elif [ -e "$NewPoint" ] && [ -z "$EmptyDir" ]; then
+          NewPoint="/$Point/$(basename "${DevArr1[i]}")-$((N += 1))"
         else
-          MntArr1+=("$NewPnt")
+          MntArr1+=("$NewPoint")
           break
         fi
       done
